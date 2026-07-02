@@ -1,1 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
 
+<title>✨ 離職倒數</title>
+
+<style>
+:root{
+    --box-size: 58px;
+    --gap-normal: 8px;
+    --gap-weekend: 28px;
+
+    --active-bg:#ffffff;
+    --active-border:#d5d5d5;
+
+    --past-bg:#f2f2f2;
+    --past-text:#b7b7b7;
+}
+
+body{
+    margin:30px;
+    background:#fffdf9;
+    font-family:"Huninn",sans-serif;
+}
+
+#countdownBox{
+    max-width:900px;
+    margin:auto auto 40px;
+
+    padding:18px;
+
+    border-radius:24px;
+
+    background:#fff0f3;
+
+    border:3px solid #ffd5de;
+
+    text-align:center;
+
+    font-size:34px;
+    font-weight:bold;
+
+    color:#8f5d5d;
+}
+
+.week{
+    position:relative;
+    margin-bottom:90px;
+}
+
+.days{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+}
+
+.days.reverse{
+    flex-direction:row-reverse;
+}
+
+.day{
+    width:60px;
+    height:60px;
+    position:relative;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:28px;
+    font-weight:bold;
+
+    border-radius:14px;
+
+    color:#694b4b;
+
+    border:3px solid rgba(255,255,255,.8);
+
+    box-shadow:
+        0 4px 0 rgba(0,0,0,.08),
+        inset 0 2px 0 rgba(255,255,255,.9);
+
+    transition:.3s;
+}
+
+.day.past{
+    opacity:.35;
+    transform:translateY(4px);
+    box-shadow:none;
+}
+
+.day.today{
+
+    animation:glow 1.6s infinite;
+
+    border:3px solid #ffd34d;
+}
+
+.day.freedom{
+    border:3px solid #ff74b2;
+
+    animation:freedomGlow 1.2s infinite;
+}
+
+@keyframes glow{
+    0%{box-shadow:0 0 5px gold;}
+    50%{box-shadow:0 0 25px gold;}
+    100%{box-shadow:0 0 5px gold;}
+}
+
+@keyframes freedomGlow{
+    0%{box-shadow:0 0 10px #ff7ebd;}
+    50%{box-shadow:0 0 35px #ff7ebd;}
+    100%{box-shadow:0 0 10px #ff7ebd;}
+}
+
+.track{
+    position:absolute;
+
+    left:50%;
+    transform:translateX(-50%);
+
+    top:-28px;
+
+    width:560px;
+    height:18px;
+
+    border-radius:999px;
+
+    background:#ffd9e5;
+
+    overflow:hidden;
+}
+
+.track-image{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.walker{
+    position:absolute;
+
+    width:56px;
+    height:56px;
+
+    top:-70px;
+
+    transition:.3s;
+}
+
+.month-marker{
+    position:absolute;
+
+    font-size:15px;
+
+    color:#7b6f6f;
+
+    text-align:center;
+}
+
+.month-marker .arrow{
+    font-size:18px;
+}
+
+.flag{
+    position:absolute;
+
+    top:-25px;
+    right:15px;
+
+    font-size:24px;
+}
+
+.hammock{
+    position:absolute;
+
+    width:80px;
+
+    top:-80px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+}
+
+</style>
+</head>
+<body>
+
+<div id="countdownBox">
+    <span id="countdownText"></span>
+</div>
+
+<div id="calendar"></div>
+
+<script>
+
+const START_DATE = "2026-07-06";
+const END_DATE = "2026-09-06";
+
+const WALK_GIF = "";
+const HAMMOCK_GIF = "";
+
+const TRACK_IMAGE = "";
+
+const WEEK_COLORS = [
+    "#ffbfd9", // 粉
+    "#ffe79a", // 黃
+    "#bff0b7", // 綠
+    "#bfeeff"  // 藍
+];
+
+const calendar = document.getElementById("calendar");
+
+function formatDate(d){
+    return d.toISOString().split("T")[0];
+}
+
+const dates=[];
+
+let current = new Date(START_DATE);
+
+while(current <= new Date(END_DATE)){
+    dates.push(new Date(current));
+    current.setDate(current.getDate()+1);
+}
+
+const weeks=[];
+
+let currentWeek=[];
+
+dates.forEach(date=>{
+
+    currentWeek.push(date);
+
+    if(date.getDay()===0){ // 星期日
+
+        weeks.push(currentWeek);
+        currentWeek=[];
+    }
+
+});
+
+if(currentWeek.length){
+    weeks.push(currentWeek);
+}
+
+
+const today = new Date();
+const endDate = new Date(END_DATE);
+
+const remainingDays =
+Math.max(
+0,
+Math.ceil(
+(endDate - today) / (1000*60*60*24)
+)
+);
+
+document.getElementById("countdownText").innerHTML =
+`距離自由還有 ${remainingDays} 天 ✨`;
+
+today.setHours(0,0,0,0);
+
+let currentWeekIndex = -1;
+let currentDayIndex = -1;
+
+weeks.forEach((week,weekIndex)=>{
+
+    const weekColor =
+        WEEK_COLORS[
+            weekIndex % WEEK_COLORS.length
+    ];    
+    
+    const wrapper=document.createElement("div");
+    wrapper.className="week";
+
+    const track=document.createElement("div");
+        if(TRACK_IMAGE){
+            track.innerHTML=`<img class="track-image" src="${TRACK_IMAGE}">`;
+        }
+    track.className="track";
+
+    const walker=document.createElement("img");
+    walker.className="walker";
+
+    if(WALK_GIF){
+        walker.src=WALK_GIF;
+    }
+
+    wrapper.appendChild(track);
+    wrapper.appendChild(walker);
+
+    const monthStart=week.find(d=>d.getDate()===1);
+
+    if(monthStart){
+
+        const month=document.createElement("div");
+        month.className="month-label";
+        month.textContent=`${monthStart.getMonth()+1}月`;
+
+        wrapper.appendChild(month);
+    }
+
+    const row=document.createElement("div");
+    row.className="days";
+
+    if(weekIndex%2===1){
+        row.classList.add("reverse");
+    }
+
+    week.forEach((date,index)=>{
+
+        const day=document.createElement("div");
+        day.className="day";
+        day.style.background = weekColor;
+
+        day.textContent=date.getDate();
+        
+        if(
+            date.getDate()===1 ||
+            formatDate(date)===START_DATE
+        ){
+
+            const marker=document.createElement("div");
+
+            marker.className="month-marker";
+
+            marker.innerHTML=`
+                <div>${date.getMonth()+1}月</div>
+                <div class="arrow">▼</div>
+                <div>${date.getMonth()+1}/${date.getDate()}</div>
+            `;
+
+            marker.style.top="-65px";
+
+            day.appendChild(marker);
+        }
+
+        if(date < today){
+            day.classList.add("past");
+        }
+
+        if(formatDate(date)===formatDate(today)){
+
+            day.classList.add("today");
+            
+            currentWeekIndex=weekIndex;
+            currentDayIndex=index;
+        }
+        
+        if(formatDate(date)===END_DATE){
+
+            day.classList.add("freedom");
+
+            const flag=document.createElement("div");
+
+            flag.className="flag";
+
+            flag.textContent="🚩";
+
+            day.appendChild(flag);
+        }
+
+        row.appendChild(day);
+
+        if(index<week.length-1){
+
+            const nextDay=week[index+1];
+
+            const gap=document.createElement("div");
+
+            if(date.getDay()===5){
+                gap.className="weekend-gap";
+            }else{
+                gap.className="weekday-gap";
+            }            
+
+            row.appendChild(gap);
+        }
+    });
+
+    wrapper.appendChild(row);
+    calendar.appendChild(wrapper);
+});
+
+requestAnimationFrame(()=>{
+
+    if(currentWeekIndex<0) return;
+
+    const week=document.querySelectorAll(".week")[currentWeekIndex];
+
+    const boxes=week.querySelectorAll(".day");
+
+    const targetBox=
+        currentWeekIndex%2===0
+        ? boxes[currentDayIndex]
+        : boxes[boxes.length-1-currentDayIndex];
+
+    const track=week.querySelector(".track");
+    const walker=week.querySelector(".walker");
+
+    const row=week.querySelector(".days");
+
+    track.style.display="block";
+    track.style.width=row.offsetWidth+"px";
+
+    if(WALK_GIF){
+
+        walker.style.display="block";
+
+        const x=
+            targetBox.offsetLeft+
+            targetBox.offsetWidth/2-
+            20;
+
+        walker.style.left=x+"px";
+        walker.style.transform = currentWeekIndex % 2 === 0
+            ? "scaleX(1)"
+            : "scaleX(-1)";
+     }
+
+});
+
+function showHammock(){
+
+    if(!HAMMOCK_GIF) return;
+
+    const now=new Date();
+
+    const day=now.getDay();
+    const hour=now.getHours();
+
+    const sleepMode=
+
+        (day===0 && hour>=20)
+
+        ||
+
+        (day===1 && hour<8);
+
+    if(!sleepMode) return;
+
+    const week=
+    document.querySelectorAll(".week")[currentWeekIndex];
+
+    if(!week) return;
+
+    const hammock=document.createElement("img");
+
+    hammock.src=HAMMOCK_GIF;
+
+    hammock.className="hammock";
+
+    week.appendChild(hammock);
+
+    const walker=
+    week.querySelector(".walker");
+
+    if(walker){
+        walker.style.display="none";
+    }
+}
+
+showHammock();
+
+</script>
+
+</body>
+</html>
