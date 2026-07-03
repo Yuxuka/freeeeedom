@@ -33,7 +33,7 @@ body{
 
 #countdownBox{
     width:fit-content;
-    max-width:90vw;
+    width:min(    calc(60px * 5 + 5px * 4), 90vw);
     margin:0 auto 40px;
     padding:18px;
     border-radius:0;
@@ -70,7 +70,8 @@ body{
 }
 
 .day{
-    width:min(60px,12vw);
+    width:min(58px,11vw);
+    font-size:min(20px,5vw);
     aspect-ratio:1;
     position:relative;
     display:flex;
@@ -104,9 +105,8 @@ body{
 .track{
     position:absolute;
     top:-28px;
-    width:560px;
     height:18px;
-    border-radius:999px;
+    border-radius:5px;
     background:#ffd9e5;
     overflow:hidden;
 }
@@ -331,24 +331,14 @@ weeks.forEach((week,weekIndex)=>{
 
         row.appendChild(day);
 
-        if(index<week.length-1){
-
-            const nextDay=week[index+1];
-
-            const gap=document.createElement("div");
-
-            if(date.getDay()===5){
-                gap.className="weekend-gap";
-            }else{
-                gap.className="weekday-gap";
-            }            
-
-            row.appendChild(gap);
-        }
+        
     });
 
     wrapper.appendChild(row);
     calendar.appendChild(wrapper);
+    requestAnimationFrame(() => {
+    track.style.width = row.offsetWidth + "px";
+});
 });
 
 requestAnimationFrame(()=>{
