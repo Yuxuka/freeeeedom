@@ -35,20 +35,13 @@ body{
     width:fit-content;
     max-width:90vw;
     margin:0 auto 40px;
-
     padding:18px;
-
     border-radius:0;
-
     background:#fff0f3;
-
     border:10px;
-
     text-align:center;
-
     font-size:34px;
     font-weight:bold;
-
     color:#8f5d5d;
 }
 
@@ -69,7 +62,7 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:10px;
+    gap:5px;
 }
 
 .days.reverse{
@@ -77,29 +70,20 @@ body{
 }
 
 .day{
-    
-    width:60px;
-
-    aspect-ratio:1/1;
+    width:min(60px,12vw);
+    aspect-ratio:1;
     position:relative;
-
     display:flex;
     justify-content:center;
     align-items:center;
-
     font-size:22px;
     font-weight:bold;
-
     border-radius:12px;
-
     color:#694b4b;
-
     border:3px solid rgba(255,255,255,.8);
-
     box-shadow:
         0 4px 0 rgba(0,0,0,.08),
         inset 0 2px 0 rgba(255,255,255,.9);
-
     transition:.3s;
 }
 
@@ -110,48 +94,20 @@ body{
 }
 
 .day.today{
-    animation:glow 1.6s infinite;
     border:3px solid #ffd34d;
 }
 
 .day.freedom{
     border:3px solid #ff74b2;
-    animation:freedomGlow 1.2s infinite;
-}
-
-@keyframes glow{
-    0%{box-shadow:0 0 5px gold;}
-    50%{box-shadow:0 0 25px gold;}
-    100%{box-shadow:0 0 5px gold;}
-}
-
-@keyframes freedomGlow{
-    0%{box-shadow:0 0 10px #ff7ebd;}
-    50%{box-shadow:0 0 35px #ff7ebd;}
-    100%{box-shadow:0 0 10px #ff7ebd;}
-}
-
-@keyframes bounce{
-    0%{transform:translateY(1px);}
-    50%{transform:translateY(5px);}
-    100%{transform:translateY(1px);}
 }
 
 .track{
     position:absolute;
-
-    left:50%;
-    transform:translateX(-50%);
-
     top:-28px;
-
     width:560px;
     height:18px;
-
     border-radius:999px;
-
     background:#ffd9e5;
-
     overflow:hidden;
 }
 
@@ -163,12 +119,9 @@ body{
 
 .walker{
     position:absolute;
-
     width:56px;
     height:56px;
-
     top:-70px;
-
     transition:.3s;
 }
 
@@ -180,17 +133,25 @@ body{
     top: -55px;
 }
 
+@keyframes bounce{
+    0%{transform:translateY(1px);}
+    50%{transform:translateY(5px);}
+    100%{transform:translateY(1px);}    
+}
+
 .month-marker .arrow{
     font-size:18px;
     animation:bounce 1s infinite ease-in-out;
 }
 
+.month-marker.past-month{
+    opacity:.3;
+}
+
 .flag{
     position:absolute;
-
     top:-25px;
     right:15px;
-
     font-size:24px;
 }
 
@@ -219,12 +180,9 @@ body{
 
 const START_DATE = "2026-06-29";
 const END_DATE = "2026-09-06";
-
 const WALK_GIF = "";
 const HAMMOCK_GIF = "";
-
 const TRACK_IMAGE = "";
-
 const WEEK_COLORS = [
     "#ffbfd9", // 粉
     "#ffe79a", // 黃
@@ -233,7 +191,6 @@ const WEEK_COLORS = [
 ];
 
 const calendar = document.getElementById("calendar");
-
 function formatDate(d){
     return d.toISOString().split("T")[0];
 }
