@@ -306,17 +306,24 @@ weeks.forEach((week,weekIndex)=>{
         track.innerHTML=`<img class="track-image" src="${TRACK_IMAGE}">`;
     }
 
-    const walker=document.createElement("img");
-    walker.className="walker";
-    const useSmallWalker=window.innerWidth < 480;
-    walker.src=useSmallWalker
-        ? WALK_GIF_SMALL
-        : WALK_GIF_LARGE;
-    if(!ENABLE_WALKER){
-        walker.classList.add("hidden");
-    }
+    let walker = null;
 
-    wrapper.appendChild(walker);
+    if(weekIndex === currentWeekIndex){
+        walker = document.createElement("img");
+        walker.className = "walker";
+
+        const useSmallWalker = window.innerWidth < 480;
+
+        walker.src = useSmallWalker
+            ? WALK_GIF_SMALL
+            : WALK_GIF_LARGE;
+
+        if(!ENABLE_WALKER){
+            walker.classList.add("hidden");
+        }
+
+        wrapper.appendChild(walker);
+    }
     wrapper.appendChild(track);
 
     const row=document.createElement("div");
