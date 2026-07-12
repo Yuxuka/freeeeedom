@@ -175,10 +175,9 @@ body{
 .track{
     z-index: 10;
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
     top: var(--track-offset);
-    width: 100%;
+
     height: var(--track-height);
     border-radius: 5px;
     background: #ffd9e5;
@@ -199,9 +198,6 @@ body{
     background:#ffd9e5;
 }
 
-.track-future{
-    background:#e9e9e9;
-}
 
 .walker{
     z-index: 40;
@@ -323,7 +319,7 @@ weeks.forEach((week,weekIndex)=>{
     wrapper.className="week";
 
     const track=document.createElement("div");
-    track.className="track track-u";
+    track.className="track";
     if(TRACK_IMAGE){
         track.innerHTML=`<img class="track-image" src="${TRACK_IMAGE}">`;
     }
@@ -431,7 +427,7 @@ requestAnimationFrame(()=>{
             track.classList.add("track-current");
         }
         else{
-            track.classList.add("track-future");
+            track.style.display="none";
         }
     });
 
@@ -439,7 +435,8 @@ requestAnimationFrame(()=>{
     const boxes=week.querySelectorAll(".day");
     const targetBox=boxes[currentDayIndex];
     const track=week.querySelector(".track");
-
+    const row=week.querySelector(".days");
+    const rowRect=row.getBoundingClientRect();
     const allWalkers=document.querySelectorAll(".walker");
     allWalkers.forEach(w=>{
         w.style.display="none";
@@ -448,10 +445,18 @@ requestAnimationFrame(()=>{
     walker.style.display="block";
 
     if(ENABLE_WALKER && walker){
-        const walkerWidth=walker.offsetWidth;
+        const walkerWidth=walker.width;
         const weekRect=week.getBoundingClientRect();
         const boxRect=targetBox.getBoundingClientRect();
-        const progressWidth=boxRect.left - weekRect.left + boxRect.width / 2;
+        
+        let progressWidth;
+        if(week.querySelector(".days").classList.contains("reverse")){
+            progressWidth=rowRect.right - boxRect.right + boxRect.width;
+        }
+        else{
+            progressWidth=boxRect.left - rowRect.left + boxRect.width;
+        }
+
         track.style.width=progressWidth + "px";
         const x=boxRect.left - weekRect.left + boxRect.width/2 - walkerWidth/2;
         walker.style.left=x + "px";
