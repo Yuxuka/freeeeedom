@@ -21,16 +21,23 @@ href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
     --active-border: #d5d5d5;
     --past-bg: #f2f2f2;
     --past-text: #b7b7b7;
-    --track-offset:-28px;
-    --track-gap: 20px;
+
     --week-gap: 50px;
+
+    --days-offset: -3px;
+
+    --track-offset:-20px;
+    --track-gap: 20px;
     --track-height: 18px;
-    --walker-size: 50px;
-    --walker-y-offset: 20px;
-    --hammock-height: 60px;
-    --marker-gap: 28px;
     --track-anchor: calc(var(--track-offset) + var(--track-height) / 2);
-    --days-offset: calc(var(--track-offset) + 25px);
+    
+    --walker-size: 48px;
+    --walker-top: -50px;
+
+    --hammock-height: 60px;
+    --hammock-top: -60px;
+    --marker-top: -50px;
+    --marker-gap: 28px;
 }
 
 body{
@@ -80,6 +87,7 @@ body{
 }
 
 .days{
+    z-index: 20;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -92,6 +100,7 @@ body{
 }
 
 .day{
+    z-index: 1;
     width: clamp(36px,10vw,50px);
     aspect-ratio: 1;
     position: relative;
@@ -124,11 +133,6 @@ body{
     pointer-events:none;
 }
 
-.day > *{
-    position:relative;
-    z-index:2;
-}
-
 .day.today{
     border: 3px solid #ffd34d;
 }
@@ -138,6 +142,7 @@ body{
 }
 
 .month-marker{
+    z-index: 20;
     position: absolute;
     white-space: nowrap;
     left: 50%;
@@ -145,11 +150,10 @@ body{
     font-size: 15px;
     color: #7b6f6f;
     text-align: center;
-    top: calc(var(--track-anchor) - var(--marker-gap) - var(--days-offset));
+    top: var(--marker-top);
     opacity: 1;
     transition: opacity .3s;
     pointer-events: none;
-    z-index: 20;
     font-size: clamp(11px, 3vw, 15px);
 }
 
@@ -169,6 +173,7 @@ body{
 }
 
 .track{
+    z-index: 10;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -186,11 +191,25 @@ body{
     object-fit: cover;
 }
 
+.track-completed{
+    background:#8fd694;
+}
+
+.track-current{
+    background:#ffd9e5;
+}
+
+.track-future{
+    background:#e9e9e9;
+}
+
 .walker{
+    z-index: 40;
+    image-rendering: pixelated;
     position: absolute;
-    width: var(--walker-size);
-    height: var(--walker-size);
-    top: calc(var(--track-anchor) - (var(--walker-size) / 2) + var(--walker-y-offset));
+    width: auto;
+    height: auto;
+    top: var(--walker-top);
     transition: .3s;
 }
 
@@ -199,17 +218,19 @@ body{
 }
 
 .flag{
+    z-index: 30;
     position: absolute;
     top: -25px;
-    right: 15px;
+    right: 20px;
     font-size: 24px;
 }
 
 .hammock{
+    z-index: 30;
     position: absolute;
     width: 80px;
     height: var(--hammock-height);
-    top: calc(var(--track-anchor) - 52px);
+    top: var(--hammock-top);
     left: 50%;
     transform: translateX(-50%);
 }
@@ -217,6 +238,7 @@ body{
 </style>
 </head>
 <body>
+
 
 <div id="countdownBox" class="pixel-borders pixel-borders--3a pixel-borders--inset pixel-borders--inset-all">
     <span class="normal-text">烙跑倒數</span>
@@ -291,8 +313,8 @@ let currentWeekIndex=-1;
 let currentDayIndex=-1;
 
 function updateTrackWidth(track, row){
-        track.style.width=row.offsetWidth+"px";
-    }
+    track.style.width=row.offsetWidth+"px";
+}
 
 weeks.forEach((week,weekIndex)=>{
     const weekColor=WEEK_COLORS[weekIndex % WEEK_COLORS.length];
@@ -301,17 +323,20 @@ weeks.forEach((week,weekIndex)=>{
     wrapper.className="week";
 
     const track=document.createElement("div");
-    track.className="track";
+    track.className="track track-u";
     if(TRACK_IMAGE){
         track.innerHTML=`<img class="track-image" src="${TRACK_IMAGE}">`;
     }
 
     const walker=document.createElement("img");
     walker.className="walker";
+
     const useSmallWalker=window.innerWidth < 480;
     walker.src=useSmallWalker
         ? WALK_GIF_SMALL
         : WALK_GIF_LARGE;
+    walker.width=useSmallWalker ? 24 : 48;
+    walker.height=useSmallWalker ? 24 : 48;
     if(!ENABLE_WALKER){
         walker.classList.add("hidden");
     }
@@ -354,6 +379,9 @@ weeks.forEach((week,weekIndex)=>{
             day.classList.add("past");
         }
 
+        day.dataset.weekIndex=weekIndex;
+        day.dataset.dayIndex=index;
+
         if(formatDate(date)===formatDate(today)){
             day.classList.add("today");
             currentWeekIndex=weekIndex;
@@ -393,23 +421,40 @@ weeks.forEach((week,weekIndex)=>{
 requestAnimationFrame(()=>{
     if(currentWeekIndex<0) return;
 
-    const week=document.querySelectorAll(".week")[currentWeekIndex];
-    const boxes=week.querySelectorAll(".day");
-    const targetBox=currentWeekIndex%2===0
-        ? boxes[currentDayIndex]
-        : boxes[boxes.length-1-currentDayIndex];
-    
-    const track=week.querySelector(".track");
-    const walker=week.querySelector(".walker");
+    const allWeeks=document.querySelectorAll(".week");
+    allWeeks.forEach((weekEl,index)=>{
+        const track=weekEl.querySelector(".track");
+        if(index < currentWeekIndex){
+            track.classList.add("track-completed");
+        }
+        else if(index === currentWeekIndex){
+            track.classList.add("track-current");
+        }
+        else{
+            track.classList.add("track-future");
+        }
+    });
 
-    track.style.display="block";
+    const week=allWeeks[currentWeekIndex];
+    const boxes=week.querySelectorAll(".day");
+    const targetBox=boxes[currentDayIndex];
+    const track=week.querySelector(".track");
+
+    const allWalkers=document.querySelectorAll(".walker");
+    allWalkers.forEach(w=>{
+        w.style.display="none";
+    })
+    const walker=week.querySelector(".walker");
+    walker.style.display="block";
 
     if(ENABLE_WALKER && walker){
-        walker.style.display="block";
-        const walkerWidth = walker.offsetWidth;
-        const x=targetBox.offsetLeft + targetBox.offsetWidth / 2 - walkerWidth / 2;
-        walker.style.left = x + "px";
-
+        const walkerWidth=walker.offsetWidth;
+        const weekRect=week.getBoundingClientRect();
+        const boxRect=targetBox.getBoundingClientRect();
+        const progressWidth=boxRect.left - weekRect.left + boxRect.width / 2;
+        track.style.width=progressWidth + "px";
+        const x=boxRect.left - weekRect.left + boxRect.width/2 - walkerWidth/2;
+        walker.style.left=x + "px";
         walker.style.transform=currentWeekIndex % 2===0
             ? "scaleX(1)"
             : "scaleX(-1)";
