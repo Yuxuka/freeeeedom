@@ -263,6 +263,7 @@ const WALK_GIF_LARGE="walk_48px.gif";
 const TRACK_IMAGE="";
 const HAMMOCK_GIF="";
 const WEEK_COLORS=["#ffbfd9","#ffe79a","#bff0b7","#bfeeff"];
+const MOBILE_BREAKPOINT = 480;
 
 const calendar=document.getElementById("calendar");
 
@@ -273,9 +274,9 @@ function getTaipeiDate(date){
 
 function formatDate(d){
     const taipei=getTaipeiDate(d);
-    const y=taipei.getUTCFullYear();
-    const m=String(taipei.getUTCMonth()+1).padStart(2,"0");
-    const day=String(taipei.getUTCDate()).padStart(2,"0");
+    const y=taipei.getFullYear();
+    const m=String(taipei.getMonth()+1).padStart(2,"0");
+    const day=String(taipei.getDate()).padStart(2,"0");
 
     return `${y}-${m}-${day}`;
 }
@@ -294,7 +295,7 @@ let currentWeek=[];
 dates.forEach(date=>{
     currentWeek.push(date);
     const taipei=getTaipeiDate(date);
-    if(taipei.getUTCDay()===0){
+    if(taipei.getDay()===0){
         weeks.push(currentWeek);
         currentWeek=[];
     }
@@ -306,9 +307,12 @@ if(currentWeek.length){
 
 const nowTaipei=getTaipeiDate(new Date());
 const today=new Date(nowTaipei);
-today.setUTCHours(0,0,0,0);
+today.setHours(0,0,0,0);
+
+console.log(today);
+
 const endDate=getTaipeiDate(new Date(END_DATE));
-endDate.setUTCHours(0,0,0,0);
+endDate.setHours(0,0,0,0);
 
 const remainingDays=Math.max(0, Math.ceil((endDate - today) / (1000*60*60*24)));
 
@@ -347,12 +351,11 @@ weeks.forEach((week,weekIndex)=>{
     const walker=document.createElement("img");
     walker.className="walker";
 
-    const useSmallWalker=window.innerWidth < 480;
-    walker.src=useSmallWalker
-        ? WALK_GIF_SMALL
-        : WALK_GIF_LARGE;
-    walker.width=useSmallWalker ? 24 : 48;
-    walker.height=useSmallWalker ? 24 : 48;
+    const { size: walkerSize, src: walkerSrc } = getWalkerSize();
+    walker.src = walkerSrc;
+    walker.width = walkerSize;
+    walker.height = walkerSize;
+
     if(!ENABLE_WALKER){
         walker.classList.add("hidden");
     }
@@ -371,18 +374,18 @@ weeks.forEach((week,weekIndex)=>{
         const day=document.createElement("div");
         day.className="day";
         day.style.background=weekColor;
-        day.textContent=taipei.getUTCDate();
+        day.textContent=taipei.getDate();
 
-        if(taipei.getUTCDate()===1 || formatDate(date)===START_DATE){
+        if(taipei.getDate()===1 || formatDate(date)===START_DATE){
             const marker=document.createElement("div");
             marker.className="month-marker";
             marker.innerHTML=`
-                <div>${taipei.getUTCMonth()+1}月</div>
+                <div>${taipei.getMonth()+1}月</div>
                 <div class="arrow">▼</div>
             `;
 
-            const markerMonth=taipei.getUTCMonth();
-            const currentMonth=today.getUTCMonth();
+            const markerMonth=taipei.getMonth();
+            const currentMonth=today.getMonth();
             
             if(markerMonth < currentMonth){
                 marker.classList.add("past-month");
@@ -397,6 +400,7 @@ weeks.forEach((week,weekIndex)=>{
 
         day.dataset.weekIndex=weekIndex;
         day.dataset.dayIndex=index;
+
 
         if(formatDate(date)===formatDate(today)){
             day.classList.add("today");
@@ -415,7 +419,7 @@ weeks.forEach((week,weekIndex)=>{
         row.appendChild(day);
         if(index < week.length-1){
             const gap=document.createElement("div");
-            if(taipei.getUTCDay()===5){
+            if(taipei.getDay()===5){
                 gap.style.width="20px";
             }
             else{
@@ -434,11 +438,28 @@ weeks.forEach((week,weekIndex)=>{
     });
 });
 
-const size=window.innerWidth < 480  ? 24 : 48;
-document.documentElement.style.setProperty(
-        "--walker-size", `${size}px`);
+function getWalkerSize(){
+    return window.innerWidth < MOBILE_BREAKPOINT
+        ? { size: 24, src: WALK_GIF_SMALL }
+        : { size: 48, src: WALK_GIF_LARGE };
+}
 
-requestAnimationFrame(()=>{
+function applyWalkerSize(){
+    const { size, src } = getWalkerSize();
+    document.documentElement.style.setProperty("--walker-size", `${size}px`);
+
+    document.querySelectorAll(".walker").forEach(walker=>{
+        walker.width = size;
+        walker.height = size;
+        if(walker.getAttribute("src") !== src){
+            walker.src = src;
+        }
+    });
+}
+
+applyWalkerSize();
+
+/*requestAnimationFrame(()=>{
     const allWeeks=document.querySelectorAll(".week");
 
     allWeeks.forEach((weekEl,index)=>{
@@ -502,13 +523,104 @@ requestAnimationFrame(()=>{
             ? "scaleX(-1)"
             : "scaleX(1)";
     }
-});
+});*/
+
+function renderAllTracks(){
+    const allWeeks = document.querySelectorAll(".week");
+
+    allWeeks.forEach((weekEl, index)=>{
+        const row = weekEl.querySelector(".days");
+        const track = weekEl.querySelector(".track");
+
+        // resize 重算：track 的寬度/位置每次都要跟著 row 重新對齊
+        track.style.display = "";
+        updateTrackWidth(track, row);
+
+        const trackCompleted = weekEl.querySelector(".track-completed");
+        const trackCurrent = weekEl.querySelector(".track-current");
+
+        if(index < currentWeekIndex){
+            trackCompleted.style.left = "0";
+            trackCompleted.style.right = "auto";
+            trackCompleted.style.width = "100%";
+            trackCurrent.style.display = "none";
+        }else if(index > currentWeekIndex){
+            track.style.display = "none";
+        }
+    });
+
+    if(currentWeekIndex < 0) return;
+
+    const week = allWeeks[currentWeekIndex];
+    const targetBox = week.querySelector(".day.today");
+    const row = week.querySelector(".days");
+    const walker = week.querySelector(".walker");
+
+    // targetBox null 保護：找不到「今天」的格子就不畫 walker/track-current，直接結束
+    if(!targetBox || !row || !walker){
+        console.warn("renderAllTracks: 找不到 targetBox / row / walker，略過本次渲染");
+        return;
+    }
+
+    const rowRect = row.getBoundingClientRect();
+
+    document.querySelectorAll(".walker").forEach(w=>{
+        w.style.display = "none";
+    });
+    walker.style.display = "block";
+
+    if(ENABLE_WALKER){
+        const weekRect = week.getBoundingClientRect();
+        const boxRect = targetBox.getBoundingClientRect();
+
+        const isReverse = row.classList.contains("reverse");
+        const boxCenter = boxRect.left - rowRect.left + boxRect.width / 2;
+        const trackCompleted = week.querySelector(".track-completed");
+        const trackCurrent = week.querySelector(".track-current");
+        trackCurrent.style.display = "block";
+
+        if(!isReverse){
+            trackCompleted.style.left = "0px";
+            trackCompleted.style.right = "auto";
+            trackCompleted.style.width = Math.max(0, boxCenter-36) + "px";
+
+            trackCurrent.style.left = Math.max(0, boxCenter-36) + "px";
+            trackCurrent.style.right = "auto";
+        }else{
+            const reverseWidth = rowRect.width - boxCenter;
+            trackCompleted.style.left = "auto";
+            trackCompleted.style.right = "0px";
+            trackCompleted.style.width = Math.max(0, reverseWidth - 36) + "px";
+
+            trackCurrent.style.left = "auto";
+            trackCurrent.style.right = Math.max(0, reverseWidth - 36) + "px";
+        }
+
+        const walkerWidth = walker.width;
+        const x = boxRect.left - weekRect.left + boxRect.width/2 - walkerWidth/2;
+        walker.style.left = x + "px";
+        walker.style.transform = isReverse ? "scaleX(-1)" : "scaleX(1)";
+    }
+}
+
+requestAnimationFrame(renderAllTracks);
+
+let resizeTimer;
+function handleResize(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(()=>{
+        applyWalkerSize();
+        renderAllTracks();
+    }, 150);
+}
+
+window.addEventListener("resize", handleResize);
 
 function showHammock(){
     if(!HAMMOCK_GIF) return;
 
-    const day=nowTaipei.getUTCDay();
-    const hour=nowTaipei.getUTCHours();
+    const day=nowTaipei.getDay();
+    const hour=nowTaipei.getHours();
     const sleepMode=(day===0 && hour>=20) || (day===1 && hour<8);
 
     if(!sleepMode) return;
