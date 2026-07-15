@@ -31,10 +31,13 @@ href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
     
     --walker-top: calc((4px + var(--walker-size)) * -1);
 
-    --hammock-height: 60px;
+    --hammock-width: 36px;
+    --hammock-height: 72px;
     --hammock-top: -60px;
     --marker-top: -50px;
     --marker-gap: 28px;
+    --stair-width: 60px;
+    --stair-height: 70px;
 }
 
 body{
@@ -146,6 +149,11 @@ body{
 
 .day.today{
     border: 3px solid #ffd34d;
+    box-shadow:
+        0 4px 0 rgba(0,0,0,.08),
+        inset 0 2px 0 rgba(255,255,255,.9),
+        0 0 12px rgba(255,211,77,.8),
+        0 0 24px rgba(255,211,77,.4);
 }
 
 .day.freedom{
@@ -247,11 +255,31 @@ body{
     z-index: 30;
     image-rendering: pixelated;
     position: absolute;
-    width: 80px;
+    width: var(--hammock-width);
     height: var(--hammock-height);
     top: var(--hammock-top);
     left: 50%;
     transform: translateX(-50%);
+}
+
+.stair{
+    z-index: 6;
+    image-rendering: pixelated;
+    position: absolute;
+    width: var(--stair-width);
+    height: var(--stair-height);
+    bottom: calc(var(--stair-height) * -1);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    pointer-events: none;
+}
+
+.stair.stair-right{
+    right: 20px;
+}
+
+.stair.stair-left{
+    left: 20px;
 }
 
 </style>
@@ -281,6 +309,7 @@ const WALK_GIF_SMALL="walk_24px.gif";
 const WALK_GIF_LARGE="walk_48px.gif";
 const TRACK_IMAGE="";
 const HAMMOCK_GIF="";
+const STAIR_IMAGE="";
 const WEEK_COLORS=["#ffbfd9","#ffe79a","#bff0b7","#bfeeff"];
 const LAST_WORKDAY = "2026-09-04";
 const SLEEP_DATE_1 = "2026-09-05";
@@ -461,7 +490,7 @@ weeks.forEach((week,weekIndex)=>{
             currentDayIndex=index;
         }
 
-        if(formatDate(date)===END_DATE){
+        if(formatDate(date)===LAST_WORKDAY){
             day.classList.add("freedom");
         }
 
@@ -487,6 +516,15 @@ weeks.forEach((week,weekIndex)=>{
     });
 
     wrapper.appendChild(row);
+
+    if(STAIR_IMAGE && weekIndex < weeks.length - 1){
+        const stair = document.createElement("div");
+        const isReverseWeek = weekIndex % 2 === 1;
+        stair.className = "stair " + (isReverseWeek ? "stair-left" : "stair-right");
+        stair.style.backgroundImage = `url(${STAIR_IMAGE})`;
+        wrapper.appendChild(stair);
+    }
+    
     calendar.appendChild(wrapper);
 
     requestAnimationFrame(()=>{
@@ -503,7 +541,11 @@ function getCharacterMode(){
 
     const day = nowTaipei.getDay();
     const hour = nowTaipei.getHours();
-    const isRestWindow = (day===0 && hour>=20) || (day===1 && hour<8);
+    const isRestWindow =
+        (day===5 && hour>=20) ||
+        day===6 ||
+        day===0 ||
+        (day===1 && hour<8);
 
     if(isRestWindow){
         return "resting";
