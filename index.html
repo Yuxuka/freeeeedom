@@ -319,8 +319,8 @@ const WEEK_COLORS=["#ffbfd9","#ffe79a","#bff0b7","#bfeeff"];
 const LAST_WORKDAY = "2026-09-04";
 const SLEEP_DATE_1 = "2026-09-05";
 const SLEEP_DATE_2 = "2026-09-06";
-const SLEEP_GIF = "sleep.png";
-const REST_GIF = "rest.png";
+const SLEEP_GIF = "";
+const REST_GIF = "";
 
 const TRACK_CURRENT_WIDTH = 72;
 const TRACK_CURRENT_HALF = TRACK_CURRENT_WIDTH / 2;
@@ -654,7 +654,7 @@ function renderAllTracks(){
 
         trackCurrent.style.display = "block";
 
-        if(mode === "sleeping"){
+        if(mode === "sleeping" && SLEEP_GIF){
             const box1 = week.querySelector(`[data-date="${SLEEP_DATE_1}"]`);
             const box2 = week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
 
