@@ -310,7 +310,7 @@ body{
 const START_DATE="2026-06-29";
 const END_DATE="2026-09-06";
 const ENABLE_WALKER=true;
-const WALK_GIF_SMALL="walk_24px.gif";
+const WALK_GIF_SMALL="walk_36px.gif";
 const WALK_GIF_LARGE="walk_48px.gif";
 const TRACK_IMAGE="";
 const HAMMOCK_GIF="";
@@ -561,7 +561,7 @@ function getCharacterMode(){
 
 function getWalkerSize(){
     return window.innerWidth < MOBILE_BREAKPOINT
-        ? { size: 24, src: WALK_GIF_SMALL }
+        ? { size: 36, src: WALK_GIF_SMALL }
         : { size: 48, src: WALK_GIF_LARGE };
 }
 
