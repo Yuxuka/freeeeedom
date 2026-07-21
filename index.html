@@ -263,8 +263,6 @@ body{
     width: var(--hammock-width);
     height: var(--hammock-height);
     top: var(--hammock-top);
-    left: 50%;
-    transform: translateX(-50%);
 }
 
 .stair{
@@ -313,14 +311,13 @@ const ENABLE_WALKER=true;
 const WALK_GIF_SMALL="walk_36px.gif";
 const WALK_GIF_LARGE="walk_48px.gif";
 const TRACK_IMAGE="";
-const HAMMOCK_GIF="";
+const HAMMOCK_GIF="hammock.gif";
 const STAIR_IMAGE="";
 const WEEK_COLORS=["#ffbfd9","#ffe79a","#bff0b7","#bfeeff"];
 const LAST_WORKDAY = "2026-09-04";
 const SLEEP_DATE_1 = "2026-09-05";
 const SLEEP_DATE_2 = "2026-09-06";
 const SLEEP_GIF = "";
-const REST_GIF = "";
 
 const TRACK_CURRENT_WIDTH = 72;
 const TRACK_CURRENT_HALF = TRACK_CURRENT_WIDTH / 2;
@@ -694,8 +691,11 @@ function renderAllTracks(){
         const boxRect = targetBox.getBoundingClientRect();
         const boxCenterInRow = boxRect.left - rowRect.left + boxRect.width / 2;
 
-        walker.src = mode === "resting" ? (REST_GIF || walkingSrc) : walkingSrc;
+        walker.src = walkingSrc;
         walker.style.display = "block";
+        if(mode === "resting" && HAMMOCK_GIF){
+            walker.style.display = "none";
+        }
         walker.style.width = walkerSize + "px";
         walker.style.height = walkerSize + "px";
         walker.style.transform = isReverse ? "scaleX(-1)" : "scaleX(1)";
@@ -713,6 +713,10 @@ function renderAllTracks(){
             const hammock = document.createElement("img");
             hammock.src = HAMMOCK_GIF;
             hammock.className = "hammock";
+            const hammockWidth = 36;
+            const hammockLeft = boxRect.left - weekRect.left + boxRect.width / 2 - hammockWidth / 2;
+            hammock.style.left = hammockLeft + "px";
+            hammock.style.transform = "none";
             week.appendChild(hammock);
         }
     }
