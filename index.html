@@ -125,7 +125,7 @@ body{
     aspect-ratio: 2.2;
     border-radius: 12px;
     display: flex;
-    font-size: clamp(14px,5vw,20px) / 2;
+    font-size: clamp(10px,4vw,15px);
     color: #694b4b;
     border-radius: 12px;
     justify-content: center;
@@ -285,10 +285,10 @@ body{
 
 .sleep{
     z-index: 30;
-    image-rendering: : pixelated;
+    image-rendering: pixelated;
     position: absolute;
-    width: var(--hammock-width);
-    height: var(--hammock-height);
+    width: var(--sleep-width);
+    height: var(--sleep-height);
     top: var(--hammock-top);
 }
 
@@ -610,11 +610,9 @@ function getCharacterMode(){
         day===0 ||
         (day===1 && hour<8);
 
-    if(isRestWindow){
-        return "resting";
-    }
-
-    return "walking";
+    return isRestWindow
+        ? "resting"
+        : "walking";
 }
 
 function getWalkerSize(){
@@ -746,40 +744,6 @@ function renderAllTracks(){
     }
 
     trackCurrent.style.display = isFinished ? "none" : "block";
-
-    if(mode === "sleeping" && SLEEP_GIF){
-        const box1 = week.querySelector(`[data-date="${SLEEP_DATE_1}"]`);
-        const box2 = week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
-        const rect1 = box1.getBoundingClientRect();
-        const rect2 = box2.getBoundingClientRect();
-        const center1 = rect1.left + rect1.width / 2;
-        const center2 = rect2.left + rect2.width / 2;
-        const middleCenter = (center1 + center2) / 2;
-
-        sleep.src = SLEEP_GIF || HAMMOCK_GIF;
-        sleep.style.display = "block";
-        if(SLEEP_GIF === HAMMOCK_GIF){
-            sleep.style.width = getComputedStyle(document.documentElement).getPropertyValue("--hammock-width");
-        }else{
-            sleep.style.width = getComputedStyle(document.documentElement).getPropertyValue("--sleep-width");
-        }
-
-        sleep.style.left =
-            (middleCenter - weekRect.left) - (walkerSize / 2) + "px";
-        sleep.style.transform = "scaleX(1)";
-
-        const boxCenterInRow = middleCenter - rowRect.left;
-
-        setTrackCurrentSpan(
-            trackCompleted,
-            trackCurrent,
-            boxCenterInRow - TRACK_CURRENT_HALF,
-            TRACK_CURRENT_WIDTH,
-            rowRect.width,
-            isReverse
-        );
-        return;
-    }
 
     const targetBox =
         week.querySelector(".day.today") ||
