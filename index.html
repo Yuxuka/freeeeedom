@@ -312,7 +312,7 @@ const WALK_GIF_LARGE="walk_48px.gif";
 const TRACK_IMAGE="";
 const HAMMOCK_GIF="hammock.gif";
 const STAIR_IMAGE="";
-const WEEK_COLORS=["#ffbfd9","#ffe79a","#bff0b7","#bfeeff"];
+const WEEK_COLORS=["#ffbfd9","#ffe79a","#bff0b7","#bfeeff","#d8bdff"];
 const LAST_WORKDAY = "2026-09-04";
 const SLEEP_DATE_1 = "2026-09-05";
 const SLEEP_DATE_2 = "2026-09-06";
@@ -512,9 +512,6 @@ weeks.forEach((week,weekIndex)=>{
 
         if(formatDate(date)===LAST_WORKDAY){
             day.classList.add("freedom");
-        }
-
-        if(formatDate(date)===LAST_WORKDAY){
             const flag=document.createElement("img");
             flag.className="flag";
             flag.src="flag.png";
