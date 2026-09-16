@@ -393,6 +393,8 @@ today.setHours(0,0,0,0);
 const endDate=getTaipeiDate(new Date(END_DATE));
 endDate.setHours(0,0,0,0);
 
+const afterFreedom = today > endDate;
+
 const lastWorkdayDate=getTaipeiDate(new Date(LAST_WORKDAY));
 lastWorkdayDate.setHours(0,0,0,0);
 
@@ -538,6 +540,10 @@ weeks.forEach((week,weekIndex)=>{
 });
 
 function getCharacterMode(){
+    if(today > endDate){
+        return "sleeping";
+    }
+
     const todayStr = formatDate(today);
 
     if(todayStr === SLEEP_DATE_1 || todayStr === SLEEP_DATE_2){
@@ -605,6 +611,10 @@ function setTrackCurrentSpan(trackCompleted, trackCurrent, anchorLeft, width, ro
 
 function renderAllTracks(){
     const allWeeks = document.querySelectorAll(".week");
+    if(afterFreedom){
+        renderFreedomMode();
+        return;
+    }
 
     allWeeks.forEach((weekEl, index)=>{
         const row = weekEl.querySelector(".days");
@@ -627,7 +637,9 @@ function renderAllTracks(){
     });
      document.querySelectorAll(".hammock").forEach(el => el.remove());
 
-     if(currentWeekIndex < 0) return;
+     if(currentWeekIndex < 0){
+        currentWeekIndex = weeks.length -1;
+    }
 
      const week = allWeeks[currentWeekIndex];
      const row = week.querySelector(".days");
@@ -725,6 +737,25 @@ function renderAllTracks(){
     }
 
 requestAnimationFrame(renderAllTracks);
+
+function renderFreedomMode(){
+    const allWeeks = document.querySelectorAll(".week");
+    const lastWeek = allWeeks[allWeeks.length - 1];
+
+    if(!lastWeek) return;
+    document.querySelectorAll(".walker").forEach (w=>{
+        w.style.display = "none";
+    });
+
+    const walker = lastWeek.querySelector(".walker");
+    if(!walker) return;
+
+    walker.src = SLEEP_GIF || HAMMOCK_GIF;
+    walker.style.display = "block";
+
+    walker.style.left = "50%";
+    walker.style.transform = "translateX(-50%)";
+}
 
 let resizeTimer;
 function handleResize(){
