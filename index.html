@@ -120,6 +120,24 @@ body{
     flex-direction: row-reverse;
 }
 
+.zzz{
+    height: clamp(36px,10vw,50px);
+    aspect-ratio: 2.2;
+    border-radius: 12px;
+    display: flex;
+    font-size: clamp(14px,5vw,20px) / 2;
+    color: #694b4b;
+    border-radius: 12px;
+    justify-content: center;
+    align-items: center;
+    border: 3px solid #ffd34d;
+    box-shadow:
+        0 4px 0 rgba(0,0,0,.08),
+        inset 0 2px 0 rgba(255,255,255,.9),
+        0 0 12px rgba(255,211,77,.8),
+        0 0 24px rgba(255,211,77,.4);
+}
+
 .day{
     z-index: 1;
     width: clamp(36px,10vw,50px);
@@ -130,8 +148,8 @@ body{
     align-items: center;
     font-size: clamp(14px,5vw,20px);
     font-weight: bold;
-    border-radius: 12px;
     color: #694b4b;
+    border-radius: 12px;
     border: 3px solid rgba(255,255,255,.8);
     box-shadow:  
         0 4px 0 rgba(0,0,0,.08), 
@@ -265,6 +283,15 @@ body{
     top: var(--hammock-top);
 }
 
+.sleep{
+    z-index: 30;
+    image-rendering: : pixelated;
+    position: absolute;
+    width: var(--hammock-width);
+    height: var(--hammock-height);
+    top: var(--hammock-top);
+}
+
 .stair{
     z-index: 6;
     image-rendering: pixelated;
@@ -384,7 +411,6 @@ if(currentWeek.length){
     weeks.push(currentWeek);
 }
 
-
 const nowTaipei=new Date(Date.now() + TAIPEI_OFFSET_MS);
 const actualToday=new Date(Date.UTC(
     nowTaipei.getUTCFullYear(),
@@ -458,11 +484,16 @@ weeks.forEach((week,weekIndex)=>{
     walker.width = walkerSize;
     walker.height = walkerSize;
 
+    const sleep=document.createElement("img");
+    sleep.className = "sleep";
+    sleep.style.display = "none";
+
     if(!ENABLE_WALKER){
         walker.classList.add("hidden");
     }
 
     wrapper.appendChild(walker);
+    wrapper.appendChild(sleep);
     wrapper.appendChild(track);
 
     const row=document.createElement("div");
@@ -473,10 +504,25 @@ weeks.forEach((week,weekIndex)=>{
 
     week.forEach((date,index)=>{
         const taipei=getTaipeiDate(date);
+        const dateZzz = formatDate(date);
         const day=document.createElement("div");
         day.className="day";
         day.style.background=weekColor;
         day.textContent=taipei.getUTCDate();
+
+        if(dateZzz===SLEEP_DATE_1){
+            const sleepZone = document.createElement("div");
+            sleepZone.className = "zzz";
+            sleepZone.textContent = "躺躺..zZ";
+            sleepZone.style.background=weekColor;
+
+            row.appendChild(sleepZone);
+            return;
+        }
+
+        if(dateZzz===SLEEP_DATE_2){
+            return;
+        }
 
         if(taipei.getUTCDate()===1 || formatDate(date)===START_DATE){
             const marker=document.createElement("div");
@@ -663,120 +709,119 @@ function renderAllTracks(){
         return;
     }
 
-        document.querySelectorAll(".walker").forEach(w=>{
-            w.style.display = "none";
+    document.querySelectorAll(".walker").forEach(w=>{
+        w.style.display = "none";
+    });
+
+    if(!ENABLE_WALKER) return;
+
+    const rowRect=row.getBoundingClientRect();
+    const weekRect=week.getBoundingClientRect();
+    const isReverse=row.classList.contains("reverse");
+    const mode=getCharacterMode();
+    const {size: walkerSize, src: walkingSrc} = getWalkerSize();
+
+    if(isFinished){
+        document.querySelectorAll(".track-completed").forEach(track=>{
+            track.style.left = "0";
+            track.style.right = "auto";
+            track.style.width = "100%";
+        });
+        document.querySelectorAll(".track-current").forEach(track=>{
+            track.style.display = "none";
         });
 
-        if(!ENABLE_WALKER) return;
+        const sleep = week.querySelector(".sleep");
+        const sleepZone = week.querySelector(".zzz");
+        const rect = sleepZone.getBoundingClientRect();
+        const center = rect.left + rect.width / 2;
 
-        const rowRect=row.getBoundingClientRect();
-        const weekRect=week.getBoundingClientRect();
-        const isReverse=row.classList.contains("reverse");
-        const mode=getCharacterMode();
-        const {size: walkerSize, src: walkingSrc} = getWalkerSize();
+        sleep.src = SLEEP_GIF || HAMMOCK_GIF;
+        sleep.style.display = "block";
+        walker.style.display = "none";
 
-        if(isFinished){
-            document.querySelectorAll(".track-completed").forEach(track=>{
-                track.style.left = "0";
-                track.style.right = "auto";
-                track.style.width = "100%";
-            });
-            document.querySelectorAll(".track-current").forEach(track=>{
-                track.style.display = "none";
-            });
-            const box1 = week.querySelector(`[data-date="${SLEEP_DATE_1}"]`);
-            const box2 = week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
-            const rect1 = box1.getBoundingClientRect();
-            const rect2 = box2.getBoundingClientRect();
-            const center1 = rect1.left + rect1.width / 2;
-            const center2 = rect2.left + rect2.width / 2;
-            const middleCenter = (center1 + center2) / 2;
+        sleep.style.left =
+            (center - weekRect.left) - (walkerSize / 2) + "px";
+        return;
+    }
 
-            walker.src = SLEEP_GIF || HAMMOCK_GIF;
-            walker.style.display = "block";
+    trackCurrent.style.display = isFinished ? "none" : "block";
 
-            walker.style.left =
-                (middleCenter - weekRect.left) - (walkerSize / 2) + "px";
-            return;
+    if(mode === "sleeping" && SLEEP_GIF){
+        const box1 = week.querySelector(`[data-date="${SLEEP_DATE_1}"]`);
+        const box2 = week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
+        const rect1 = box1.getBoundingClientRect();
+        const rect2 = box2.getBoundingClientRect();
+        const center1 = rect1.left + rect1.width / 2;
+        const center2 = rect2.left + rect2.width / 2;
+        const middleCenter = (center1 + center2) / 2;
+
+        sleep.src = SLEEP_GIF || HAMMOCK_GIF;
+        sleep.style.display = "block";
+        if(SLEEP_GIF === HAMMOCK_GIF){
+            sleep.style.width = getComputedStyle(document.documentElement).getPropertyValue("--hammock-width");
+        }else{
+            sleep.style.width = getComputedStyle(document.documentElement).getPropertyValue("--sleep-width");
         }
 
-        trackCurrent.style.display = isFinished ? "none" : "block";
+        sleep.style.left =
+            (middleCenter - weekRect.left) - (walkerSize / 2) + "px";
+        sleep.style.transform = "scaleX(1)";
 
-        if(mode === "sleeping" && SLEEP_GIF){
-            const box1 = week.querySelector(`[data-date="${SLEEP_DATE_1}"]`);
-            const box2 = week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
-            const rect1 = box1.getBoundingClientRect();
-            const rect2 = box2.getBoundingClientRect();
-            const center1 = rect1.left + rect1.width / 2;
-            const center2 = rect2.left + rect2.width / 2;
-            const middleCenter = (center1 + center2) / 2;
-
-            walker.src = SLEEP_GIF || HAMMOCK_GIF;
-            walker.style.display = "block";
-            if(SLEEP_GIF === HAMMOCK_GIF){
-                walker.style.width = getComputedStyle(document.documentElement).getPropertyValue("--hammock-width");
-            }else{
-                walker.style.width = getComputedStyle(document.documentElement).getPropertyValue("--sleep-width");
-            }
-
-            walker.style.left =
-                (middleCenter - weekRect.left) - (walkerSize / 2) + "px";
-            walker.style.transform = "scaleX(1)";
-
-            const boxCenterInRow = middleCenter - rowRect.left;
-
-            setTrackCurrentSpan(
-                trackCompleted,
-                trackCurrent,
-                boxCenterInRow - TRACK_CURRENT_HALF,
-                TRACK_CURRENT_WIDTH,
-                rowRect.width,
-                isReverse
-            );
-            return;
-        }
-
-        const targetBox =
-            week.querySelector(".day.today") ||
-            week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
-
-        if(!targetBox){
-            console.warn("renderAllTracks: 找不到 targetBox，略過本次渲染");
-            return;
-        }
-
-        const boxRect = targetBox.getBoundingClientRect();
-        const boxCenterInRow = boxRect.left - rowRect.left + boxRect.width / 2;
-
-        walker.src = walkingSrc;
-        walker.style.display = "block";
-        if(mode === "resting" && HAMMOCK_GIF){
-            walker.style.display = "none";
-        }
-        walker.style.width = walkerSize + "px";
-        walker.style.height = walkerSize + "px";
-        walker.style.transform = isReverse ? "scaleX(-1)" : "scaleX(1)";
-
-        const walkerLeftInWeek = boxRect.left - weekRect.left + boxRect.width/2 - walkerSize/2;
-        walker.style.left = walkerLeftInWeek + "px";
+        const boxCenterInRow = middleCenter - rowRect.left;
 
         setTrackCurrentSpan(
-            trackCompleted, trackCurrent,
-            boxCenterInRow - TRACK_CURRENT_HALF, TRACK_CURRENT_WIDTH,
-            rowRect.width, isReverse
-            );
-
-        if(mode === "resting" && HAMMOCK_GIF){
-            const hammock = document.createElement("img");
-            hammock.src = HAMMOCK_GIF;
-            hammock.className = "hammock";
-            const hammockWidth = 36;
-            const hammockLeft = boxRect.left - weekRect.left + boxRect.width / 2 - hammockWidth / 2;
-            hammock.style.left = hammockLeft + "px";
-            hammock.style.transform = "none";
-            week.appendChild(hammock);
-        }
+            trackCompleted,
+            trackCurrent,
+            boxCenterInRow - TRACK_CURRENT_HALF,
+            TRACK_CURRENT_WIDTH,
+            rowRect.width,
+            isReverse
+        );
+        return;
     }
+
+    const targetBox =
+        week.querySelector(".day.today") ||
+        week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
+
+    if(!targetBox){
+        console.warn("renderAllTracks: 找不到 targetBox，略過本次渲染");
+        return;
+    }
+
+    const boxRect = targetBox.getBoundingClientRect();
+    const boxCenterInRow = boxRect.left - rowRect.left + boxRect.width / 2;
+
+    walker.src = walkingSrc;
+    walker.style.display = "block";
+    if(mode === "resting" && HAMMOCK_GIF){
+        walker.style.display = "none";
+    }
+    walker.style.width = walkerSize + "px";
+    walker.style.height = walkerSize + "px";
+    walker.style.transform = isReverse ? "scaleX(-1)" : "scaleX(1)";
+
+    const walkerLeftInWeek = boxRect.left - weekRect.left + boxRect.width/2 - walkerSize/2;
+    walker.style.left = walkerLeftInWeek + "px";
+
+    setTrackCurrentSpan(
+        trackCompleted, trackCurrent,
+        boxCenterInRow - TRACK_CURRENT_HALF, TRACK_CURRENT_WIDTH,
+        rowRect.width, isReverse
+    );
+
+    if(mode === "resting" && HAMMOCK_GIF){
+        const hammock = document.createElement("img");
+        hammock.src = HAMMOCK_GIF;
+        hammock.className = "hammock";
+        const hammockWidth = 36;
+        const hammockLeft = boxRect.left - weekRect.left + boxRect.width / 2 - hammockWidth / 2;
+        hammock.style.left = hammockLeft + "px";
+        hammock.style.transform = "none";
+        week.appendChild(hammock);
+    }
+}
 
 requestAnimationFrame(renderAllTracks);
 
