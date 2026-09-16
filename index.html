@@ -22,17 +22,15 @@ href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
     --past-text: #b7b7b7;
 
     --week-gap: 60px;
-
     --days-offset: -3px;
-
     --track-offset:-20px;
-
     --track-height: 18px;    
-    
-    --walker-top: calc((4px + var(--walker-size)) * -1);
+    --walker-top: calc(-4px - var(--walker-size));
 
     --hammock-width: 36px;
     --hammock-height: 72px;
+    --sleep-width: 36px;
+    --sleep-height: 72px;
     --hammock-top: -60px;
     --marker-top: -50px;
     --marker-gap: 28px;
@@ -56,7 +54,8 @@ body{
     justify-content: center;
     font-size: clamp(18px, 5vw, 30px);
     width: fit-content;
-    max-width: 80vw;
+    max-width: calc(100vw - 60px);
+    box-sizing: border-box;
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 70px;
@@ -216,7 +215,6 @@ body{
     left:0;
     top:0;
     height:100%;
-
     background-image:url(completed.png);
     background-repeat:repeat-x;
     background-size:auto 100%;
@@ -233,7 +231,6 @@ body{
     background-repeat:no-repeat;
     background-size:100% 100%;
 }
-
 
 .walker{
     z-index: 40;
@@ -292,7 +289,6 @@ body{
 </head>
 <body>
 
-
 <div id="countdownBox" class="pixel-borders pixel-borders--3a pixel-borders--inset pixel-borders--inset-all">
     <div class="countdown-main">
         <span class="normal-text">烙跑倒數</span>
@@ -320,7 +316,7 @@ const WEEK_COLORS=["#ffbfd9","#ffe79a","#bff0b7","#bfeeff"];
 const LAST_WORKDAY = "2026-09-04";
 const SLEEP_DATE_1 = "2026-09-05";
 const SLEEP_DATE_2 = "2026-09-06";
-const SLEEP_GIF = "";
+const SLEEP_GIF = "hammock.gif";
 
 const TRACK_CURRENT_WIDTH = 72;
 const TRACK_CURRENT_HALF = TRACK_CURRENT_WIDTH / 2;
@@ -328,46 +324,48 @@ const MOBILE_BREAKPOINT = 480;
 
 const calendar=document.getElementById("calendar");
 
+const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+function parseTaipeiDate(dateString){
+    const [year, month, day] = dateString.split("-").map(Number);
+    return new Date(Date.UTC(year, month - 1, day));
+}
+
 function getTaipeiDate(date){
-    const utc=date.getTime() + date.getTimezoneOffset() * 60000;
-    return new Date(utc + 8 * 3600000);
+    return date;
 }
 
 function formatDate(d){
-    const taipei=getTaipeiDate(d);
-    const y=taipei.getFullYear();
-    const m=String(taipei.getMonth()+1).padStart(2,"0");
-    const day=String(taipei.getDate()).padStart(2,"0");
+    const y=d.getUTCFullYear();
+    const m=String(d.getUTCMonth()+1).padStart(2,"0");
+    const day=String(d.getUTCDate()).padStart(2,"0");
 
     return `${y}-${m}-${day}`;
 }
 
 function getRemainingWorkdays(startDate, endDate){
     let count = 0;
-    const checkDate = new Date(startDate);
-    checkDate.setHours(0,0,0,0);
-
-    const end = new Date(endDate);
-    end.setHours(0,0,0,0);
+    const checkDate = new Date(startDate.getTime());
+    const end = new Date(endDate.getTime());
 
     while(checkDate <= end){
-        const day = checkDate.getDay();
+        const day = checkDate.getUTCDay();
         if(day >= 1 && day <= 5){
             count++;
         }
-        checkDate.setDate(checkDate.getDate()+1);
+        checkDate.setUTCDate(checkDate.getUTCDate()+1);
     }
 
     return count;
 }
 
-
 const dates=[];
-let current=new Date(START_DATE);
+let current=parseTaipeiDate(START_DATE);
+const parsedEndDate=parseTaipeiDate(END_DATE);
 
-while(current <= new Date(END_DATE)){
+while(current <= parsedEndDate){
     dates.push(new Date(current));
-    current.setDate(current.getDate()+1);
+    current.setUTCDate(current.getUTCDate()+1);
 }
 
 const weeks=[];
@@ -376,7 +374,7 @@ let currentWeek=[];
 dates.forEach(date=>{
     currentWeek.push(date);
     const taipei=getTaipeiDate(date);
-    if(taipei.getDay()===0){
+    if(taipei.getUTCDay()===0){
         weeks.push(currentWeek);
         currentWeek=[];
     }
@@ -386,23 +384,38 @@ if(currentWeek.length){
     weeks.push(currentWeek);
 }
 
-const nowTaipei=getTaipeiDate(new Date());
-const today=new Date(nowTaipei);
-today.setHours(0,0,0,0);
 
-const endDate=getTaipeiDate(new Date(END_DATE));
-endDate.setHours(0,0,0,0);
+const nowTaipei=new Date(Date.now() + TAIPEI_OFFSET_MS);
+const actualToday=new Date(Date.UTC(
+    nowTaipei.getUTCFullYear(),
+    nowTaipei.getUTCMonth(),
+    nowTaipei.getUTCDate()
+));
 
-const afterFreedom = today > endDate;
+const startDate=parseTaipeiDate(START_DATE);
+const endDate=parseTaipeiDate(END_DATE);
 
-const lastWorkdayDate=getTaipeiDate(new Date(LAST_WORKDAY));
-lastWorkdayDate.setHours(0,0,0,0);
+const isFinished = actualToday > endDate;
 
-const remainingCalendarDays=Math.max(0, Math.ceil((endDate - today) / (1000*60*60*24)));
+const today = actualToday < startDate
+    ? new Date(startDate)
+    : isFinished
+        ? new Date(endDate)
+        : actualToday;
 
-const remainingWorkdays = today <= lastWorkdayDate
-    ? getRemainingWorkdays(today, lastWorkdayDate)
-    : 0;
+const lastWorkdayDate=parseTaipeiDate(LAST_WORKDAY);
+
+const remainingCalendarDays=Math.max(
+    0,
+    Math.floor((endDate - today) / (1000 * 60 * 60 * 24))
+);
+
+const remainingWorkdays = isFinished
+    ? 0
+    : getRemainingWorkdays(
+        today < startDate ? startDate : today,
+        lastWorkdayDate
+    );
 
 document.getElementById("dayNumber").textContent = remainingWorkdays;
 document.getElementById("calendarDayNumber").textContent = remainingCalendarDays;
@@ -440,7 +453,7 @@ weeks.forEach((week,weekIndex)=>{
     const walker=document.createElement("img");
     walker.className="walker";
 
-    const { size: walkerSize, src: walkerSrc } = getWalkerSize();
+    const {size: walkerSize, src: walkerSrc} = getWalkerSize();
     walker.src = walkerSrc;
     walker.width = walkerSize;
     walker.height = walkerSize;
@@ -463,18 +476,18 @@ weeks.forEach((week,weekIndex)=>{
         const day=document.createElement("div");
         day.className="day";
         day.style.background=weekColor;
-        day.textContent=taipei.getDate();
+        day.textContent=taipei.getUTCDate();
 
-        if(taipei.getDate()===1 || formatDate(date)===START_DATE){
+        if(taipei.getUTCDate()===1 || formatDate(date)===START_DATE){
             const marker=document.createElement("div");
             marker.className="month-marker";
             marker.innerHTML=`
-                <div>${taipei.getMonth()+1}月</div>
+                <div>${taipei.getUTCMonth()+1}月</div>
                 <div class="arrow">▼</div>
             `;
 
-            const markerMonth=taipei.getMonth();
-            const currentMonth=today.getMonth();
+            const markerMonth=taipei.getUTCMonth();
+            const currentMonth=today.getUTCMonth();
             
             if(markerMonth < currentMonth){
                 marker.classList.add("past-month");
@@ -511,7 +524,7 @@ weeks.forEach((week,weekIndex)=>{
         row.appendChild(day);
         if(index < week.length-1){
             const gap=document.createElement("div");
-            if(taipei.getDay()===5){
+            if(taipei.getUTCDay()===5){
                 gap.style.width="20px";
             }
             else{
@@ -540,18 +553,14 @@ weeks.forEach((week,weekIndex)=>{
 });
 
 function getCharacterMode(){
-    if(today > endDate){
-        return "sleeping";
-    }
-
     const todayStr = formatDate(today);
 
-    if(todayStr === SLEEP_DATE_1 || todayStr === SLEEP_DATE_2){
+    if(isFinished || todayStr === SLEEP_DATE_1 || todayStr === SLEEP_DATE_2){
         return "sleeping";
     }
 
-    const day = nowTaipei.getDay();
-    const hour = nowTaipei.getHours();
+    const day = nowTaipei.getUTCDay();
+    const hour = nowTaipei.getUTCHours();
     const isRestWindow =
         (day===5 && hour>=18) ||
         day===6 ||
@@ -611,10 +620,7 @@ function setTrackCurrentSpan(trackCompleted, trackCurrent, anchorLeft, width, ro
 
 function renderAllTracks(){
     const allWeeks = document.querySelectorAll(".week");
-    if(afterFreedom){
-        renderFreedomMode();
-        return;
-    }
+    const isFinished = actualToday > endDate;
 
     allWeeks.forEach((weekEl, index)=>{
         const row = weekEl.querySelector(".days");
@@ -625,6 +631,14 @@ function renderAllTracks(){
 
         const trackCompleted=weekEl.querySelector(".track-completed");
         const trackCurrent=weekEl.querySelector(".track-current");
+
+        if(isFinished){
+            trackCompleted.style.left = "0";
+            trackCompleted.style.right = "auto";
+            trackCompleted.style.width = "100%";
+            trackCurrent.style.display = "none";
+            return;
+        }
 
         if(index < currentWeekIndex){
             trackCompleted.style.left = "0";
@@ -641,13 +655,13 @@ function renderAllTracks(){
         currentWeekIndex = weeks.length -1;
     }
 
-     const week = allWeeks[currentWeekIndex];
-     const row = week.querySelector(".days");
-     const walker = week.querySelector(".walker");
-     const trackCompleted = week.querySelector(".track-completed");
-     const trackCurrent=week.querySelector(".track-current");
+    const week = allWeeks[currentWeekIndex];
+    const row = week.querySelector(".days");
+    const walker = week.querySelector(".walker");
+    const trackCompleted = week.querySelector(".track-completed");
+    const trackCurrent=week.querySelector(".track-current");
 
-     if(!row || !walker){
+    if(!row || !walker){
         console.warn("renderAllTracks: 找不到 row / walker，略過本次渲染");
         return;
     }
@@ -662,41 +676,72 @@ function renderAllTracks(){
         const weekRect=week.getBoundingClientRect();
         const isReverse=row.classList.contains("reverse");
         const mode=getCharacterMode();
-        const { size: walkerSize, src: walkingSrc } = getWalkerSize();
+        const {size: walkerSize, src: walkingSrc} = getWalkerSize();
 
-        trackCurrent.style.display = "block";
+        if(isFinished){
+            document.querySelectorAll(".track-completed").forEach(track=>{
+                track.style.left = "0";
+                track.style.right = "auto";
+                track.style.width = "100%";
+            });
+            document.querySelectorAll(".track-current").forEach(track=>{
+                track.style.display = "none";
+            });
+            const box1 = week.querySelector(`[data-date="${SLEEP_DATE_1}"]`);
+            const box2 = week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
+            const rect1 = box1.getBoundingClientRect();
+            const rect2 = box2.getBoundingClientRect();
+            const center1 = rect1.left + rect1.width / 2;
+            const center2 = rect2.left + rect2.width / 2;
+            const middleCenter = (center1 + center2) / 2;
+
+            walker.src = SLEEP_GIF || HAMMOCK_GIF;
+            walker.style.display = "block";
+
+            walker.style.left =
+                (middleCenter - weekRect.left) - (walkerSize / 2) + "px";
+            return;
+        }
+
+        trackCurrent.style.display = isFinished ? "none" : "block";
 
         if(mode === "sleeping" && SLEEP_GIF){
             const box1 = week.querySelector(`[data-date="${SLEEP_DATE_1}"]`);
             const box2 = week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
-
-            if(!box1 || !box2){
-                console.warn("renderAllTracks: 找不到睡眠模式對應日期格子");
-                return;
-            }
-
             const rect1 = box1.getBoundingClientRect();
             const rect2 = box2.getBoundingClientRect();
-            const leftMost = Math.min(rect1.left, rect2.left);
-            const rightMost = Math.max(rect1.right, rect2.right);
-            const spanWidth = rightMost - leftMost;
+            const center1 = rect1.left + rect1.width / 2;
+            const center2 = rect2.left + rect2.width / 2;
+            const middleCenter = (center1 + center2) / 2;
 
-            walker.src = SLEEP_GIF || walkingSrc;
+            walker.src = SLEEP_GIF || HAMMOCK_GIF;
             walker.style.display = "block";
-            walker.style.width = spanWidth + "px";
-            walker.style.height = walkerSize + "px";
-            walker.style.left = (leftMost - weekRect.left) + "px";
+            if(SLEEP_GIF === HAMMOCK_GIF){
+                walker.style.width = getComputedStyle(document.documentElement).getPropertyValue("--hammock-width");
+            }else{
+                walker.style.width = getComputedStyle(document.documentElement).getPropertyValue("--sleep-width");
+            }
+
+            walker.style.left =
+                (middleCenter - weekRect.left) - (walkerSize / 2) + "px";
             walker.style.transform = "scaleX(1)";
 
+            const boxCenterInRow = middleCenter - rowRect.left;
+
             setTrackCurrentSpan(
-                trackCompleted, trackCurrent,
-                leftMost - rowRect.left, spanWidth,
-                rowRect.width, isReverse
-                );
+                trackCompleted,
+                trackCurrent,
+                boxCenterInRow - TRACK_CURRENT_HALF,
+                TRACK_CURRENT_WIDTH,
+                rowRect.width,
+                isReverse
+            );
             return;
         }
 
-        const targetBox = week.querySelector(".day.today");
+        const targetBox =
+            week.querySelector(".day.today") ||
+            week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
 
         if(!targetBox){
             console.warn("renderAllTracks: 找不到 targetBox，略過本次渲染");
@@ -737,25 +782,6 @@ function renderAllTracks(){
     }
 
 requestAnimationFrame(renderAllTracks);
-
-function renderFreedomMode(){
-    const allWeeks = document.querySelectorAll(".week");
-    const lastWeek = allWeeks[allWeeks.length - 1];
-
-    if(!lastWeek) return;
-    document.querySelectorAll(".walker").forEach (w=>{
-        w.style.display = "none";
-    });
-
-    const walker = lastWeek.querySelector(".walker");
-    if(!walker) return;
-
-    walker.src = SLEEP_GIF || HAMMOCK_GIF;
-    walker.style.display = "block";
-
-    walker.style.left = "50%";
-    walker.style.transform = "translateX(-50%)";
-}
 
 let resizeTimer;
 function handleResize(){
