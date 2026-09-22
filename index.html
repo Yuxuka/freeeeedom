@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang = "zh-Hant">
 <head>
-<meta name="robots" content="noindex, nofollow">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta charset="UTF-8">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&display=swap">
-<link rel="stylesheet" 
-href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
-<link rel="stylesheet" href="./pixel-borders.css">
+<meta name = "robots" content = "noindex, nofollow">
+<meta name = "viewport" content = "width = device-width, initial-scale = 1.0">
+<meta charset = "UTF-8">
+<link rel = "preconnect" href = "https://fonts.googleapis.com">
+<link rel = "preconnect" href = "https://fonts.gstatic.com" crossorigin>
+<link rel = "stylesheet" href = "https://fonts.googleapis.com/css2?family=Huninn&display=swap">
+<link rel = "stylesheet" 
+href = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel = "stylesheet" href = "./pixel-borders.css">
 
 
 <title>烙跑倒數💃🏻</title>
@@ -29,9 +29,10 @@ href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 
     --hammock-width: 36px;
     --hammock-height: 72px;
+    --hammock-top: -60px;
     --sleep-width: 36px;
     --sleep-height: 72px;
-    --hammock-top: -60px;
+    --sleep-top: -60px;
     --marker-top: -50px;
     --marker-gap: 28px;
     --stair-width: 60px;
@@ -121,6 +122,7 @@ body{
 }
 
 .zzz{
+    position: relative;
     height: clamp(36px,10vw,50px);
     aspect-ratio: 2.2;
     border-radius: 12px;
@@ -163,13 +165,13 @@ body{
 }
 
 .day.past::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:rgba(255,255,255,.6);
-    border-radius:12px;
-    z-index:1;
-    pointer-events:none;
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,.6);
+    border-radius: 12px;
+    z-index: 1;
+    pointer-events: none;
 }
 
 .day.today{
@@ -229,25 +231,25 @@ body{
 }
 
 .track-completed{
-    position:absolute;
-    left:0;
-    top:0;
-    height:100%;
-    background-image:url(completed.png);
-    background-repeat:repeat-x;
-    background-size:auto 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background-image: url(completed.png);
+    background-repeat :repeat-x;
+    background-size: auto 100%;
 }
 
 .track-current{
-    position:absolute;
-    top:0;
-    left:0;
-    width:72px;
-    height:100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 72px;
+    height: 100%;
     display: none;
-    background-image:url(current.png);
-    background-repeat:no-repeat;
-    background-size:100% 100%;
+    background-image: url(current.png);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
 }
 
 .walker{
@@ -289,7 +291,7 @@ body{
     position: absolute;
     width: var(--sleep-width);
     height: var(--sleep-height);
-    top: var(--hammock-top);
+    top: var(--sleep-top);
 }
 
 .stair{
@@ -316,30 +318,28 @@ body{
 </head>
 <body>
 
-<div id="countdownBox" class="pixel-borders pixel-borders--3a pixel-borders--inset pixel-borders--inset-all">
-    <div class="countdown-main">
-        <span class="normal-text">烙跑倒數</span>
-        <span id="dayNumber">dayNumber</span>
-        <span class="normal-text">天</span>
-        <img class="sparkles" src="sparkles.png">
+<div id = "countdownBox" class = "pixel-borders pixel-borders--3a pixel-borders--inset pixel-borders--inset-all">
+    <div class = "countdown-main">
+        <span class = "normal-text">烙跑倒數</span>
+        <span id = "dayNumber">dayNumber</span>
+        <span class = "normal-text">天</span>
+        <img class = "sparkles" src = "sparkles.png">
     </div>
-    <div class="countdown-sub normal-text">
-        （還有 <span id="calendarDayNumber">calendarDayNumber</span> 天！<img class="pleading" src="pleading-face.webp">）
-    </div>
+    <div id = "countdownSub" class = "countdown-sub normal-text"></div>
 </div>
 
-<div id="calendar"></div>
+<div id = "calendar"></div>
 
 <script>
-const START_DATE="2026-06-29";
-const END_DATE="2026-09-06";
-const ENABLE_WALKER=true;
-const WALK_GIF_SMALL="walk_36px.gif";
-const WALK_GIF_LARGE="walk_48px.gif";
-const TRACK_IMAGE="";
-const HAMMOCK_GIF="hammock.gif";
-const STAIR_IMAGE="";
-const WEEK_COLORS=["#ffbfd9","#ffe79a","#bff0b7","#bfeeff","#d8bdff"];
+const START_DATE = "2026-06-29";
+const END_DATE = "2026-09-06";
+const ENABLE_WALKER = true;
+const WALK_GIF_SMALL = "walk_36px.gif";
+const WALK_GIF_LARGE = "walk_48px.gif";
+const TRACK_IMAGE = "";
+const HAMMOCK_GIF = "hammock.gif";
+const STAIR_IMAGE = "";
+const WEEK_COLORS = ["#ffbfd9","#ffe79a","#bff0b7","#bfeeff","#d8bdff"];
 const LAST_WORKDAY = "2026-09-04";
 const SLEEP_DATE_1 = "2026-09-05";
 const SLEEP_DATE_2 = "2026-09-06";
@@ -349,9 +349,13 @@ const TRACK_CURRENT_WIDTH = 72;
 const TRACK_CURRENT_HALF = TRACK_CURRENT_WIDTH / 2;
 const MOBILE_BREAKPOINT = 480;
 
-const calendar=document.getElementById("calendar");
+const calendar = document.getElementById("calendar");
 
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+let sleepAnimation = null;
+let sleepDirection = 1;
+let sleepPosition = 0;
 
 function parseTaipeiDate(dateString){
     const [year, month, day] = dateString.split("-").map(Number);
@@ -363,9 +367,9 @@ function getTaipeiDate(date){
 }
 
 function formatDate(d){
-    const y=d.getUTCFullYear();
-    const m=String(d.getUTCMonth()+1).padStart(2,"0");
-    const day=String(d.getUTCDate()).padStart(2,"0");
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth()+1).padStart(2,"0");
+    const day = String(d.getUTCDate()).padStart(2,"0");
 
     return `${y}-${m}-${day}`;
 }
@@ -386,24 +390,26 @@ function getRemainingWorkdays(startDate, endDate){
     return count;
 }
 
-const dates=[];
-let current=parseTaipeiDate(START_DATE);
-const parsedEndDate=parseTaipeiDate(END_DATE);
+
+
+const dates = [];
+let current = parseTaipeiDate(START_DATE);
+const parsedEndDate = parseTaipeiDate(END_DATE);
 
 while(current <= parsedEndDate){
     dates.push(new Date(current));
     current.setUTCDate(current.getUTCDate()+1);
 }
 
-const weeks=[];
-let currentWeek=[];
+const weeks = [];
+let currentWeek = [];
 
-dates.forEach(date=>{
+dates.forEach(date => {
     currentWeek.push(date);
-    const taipei=getTaipeiDate(date);
-    if(taipei.getUTCDay()===0){
+    const taipei = getTaipeiDate(date);
+    if(taipei.getUTCDay() === 0){
         weeks.push(currentWeek);
-        currentWeek=[];
+        currentWeek = [];
     }
 });
 
@@ -411,15 +417,15 @@ if(currentWeek.length){
     weeks.push(currentWeek);
 }
 
-const nowTaipei=new Date(Date.now() + TAIPEI_OFFSET_MS);
-const actualToday=new Date(Date.UTC(
+const nowTaipei = new Date(Date.now() + TAIPEI_OFFSET_MS);
+const actualToday = new Date(Date.UTC(
     nowTaipei.getUTCFullYear(),
     nowTaipei.getUTCMonth(),
     nowTaipei.getUTCDate()
 ));
 
-const startDate=parseTaipeiDate(START_DATE);
-const endDate=parseTaipeiDate(END_DATE);
+const startDate = parseTaipeiDate(START_DATE);
+const endDate = parseTaipeiDate(END_DATE);
 
 const isFinished = actualToday > endDate;
 
@@ -429,13 +435,7 @@ const today = actualToday < startDate
         ? new Date(endDate)
         : actualToday;
 
-const lastWorkdayDate=parseTaipeiDate(LAST_WORKDAY);
-
-const remainingCalendarDays=Math.max(
-    0,
-    Math.floor((endDate - today) / (1000 * 60 * 60 * 24))
-);
-
+const lastWorkdayDate = parseTaipeiDate(LAST_WORKDAY);
 const remainingWorkdays = isFinished
     ? 0
     : getRemainingWorkdays(
@@ -444,47 +444,53 @@ const remainingWorkdays = isFinished
     );
 
 document.getElementById("dayNumber").textContent = remainingWorkdays;
-document.getElementById("calendarDayNumber").textContent = remainingCalendarDays;
 
-let currentWeekIndex=-1;
-let currentDayIndex=-1;
+const countdownSub = document.getElementById("countdownSub");
 
-function updateTrackWidth(track,row){
-    track.style.width=row.offsetWidth+"px";
-    track.style.left=row.offsetLeft+"px";
+if(remainingWorkdays <= 0){
+    countdownSub.innerHTML = `（已經自由嚕～～<img class="pleading" src="pleading-face.webp"><img class = "sparkles" src="sparkles.png">）`;
+}else{
+    countdownSub.innerHTML = `（還有 ${remainingWorkdays} 天！<img class="pleading" src="pleading-face.webp">）`;
 }
 
-weeks.forEach((week,weekIndex)=>{
-    const weekColor=WEEK_COLORS[weekIndex % WEEK_COLORS.length];
+let currentWeekIndex = -1;
 
-    const wrapper=document.createElement("div");
-    wrapper.className="week";
+function updateTrackWidth(track, row){
+    track.style.width = row.offsetWidth + "px";
+    track.style.left = row.offsetLeft + "px";
+}
 
-    const track=document.createElement("div");
-    track.className="track";
+weeks.forEach((week, weekIndex) => {
+    const weekColor = WEEK_COLORS[weekIndex % WEEK_COLORS.length];
 
-    const trackCompleted=document.createElement("div");
-    trackCompleted.className="track-completed";
+    const wrapper = document.createElement("div");
+    wrapper.className = "week";
 
-    const trackCurrent=document.createElement("div");
-    trackCurrent.className="track-current";
+    const track = document.createElement("div");
+    track.className = "track";
+
+    const trackCompleted = document.createElement("div");
+    trackCompleted.className = "track-completed";
+
+    const trackCurrent = document.createElement("div");
+    trackCurrent.className = "track-current";
 
     track.appendChild(trackCompleted);
     track.appendChild(trackCurrent);
 
     if(TRACK_IMAGE){
-        track.style.background=`url(${TRACK_IMAGE}) center/cover`;
+        track.style.background = `url(${TRACK_IMAGE}) center/cover`;
     }
 
-    const walker=document.createElement("img");
-    walker.className="walker";
+    const walker = document.createElement("img");
+    walker.className = "walker";
 
     const {size: walkerSize, src: walkerSrc} = getWalkerSize();
     walker.src = walkerSrc;
     walker.width = walkerSize;
     walker.height = walkerSize;
 
-    const sleep=document.createElement("img");
+    const sleep = document.createElement("img");
     sleep.className = "sleep";
     sleep.style.display = "none";
 
@@ -496,44 +502,44 @@ weeks.forEach((week,weekIndex)=>{
     wrapper.appendChild(sleep);
     wrapper.appendChild(track);
 
-    const row=document.createElement("div");
-    row.className="days";
-    if(weekIndex%2===1){
+    const row = document.createElement("div");
+    row.className = "days";
+    if(weekIndex % 2 === 1){
         row.classList.add("reverse");
     }
 
-    week.forEach((date,index)=>{
-        const taipei=getTaipeiDate(date);
+    week.forEach((date,index) => {
+        const taipei = getTaipeiDate(date);
         const dateZzz = formatDate(date);
-        const day=document.createElement("div");
-        day.className="day";
-        day.style.background=weekColor;
-        day.textContent=taipei.getUTCDate();
+        const day = document.createElement("div");
+        day.className = "day";
+        day.style.background = weekColor;
+        day.textContent = taipei.getUTCDate();
 
-        if(dateZzz===SLEEP_DATE_1){
+        if(dateZzz === SLEEP_DATE_1){
             const sleepZone = document.createElement("div");
             sleepZone.className = "zzz";
             sleepZone.textContent = "躺躺..zZ";
-            sleepZone.style.background=weekColor;
+            sleepZone.style.background = weekColor;
 
             row.appendChild(sleepZone);
             return;
         }
 
-        if(dateZzz===SLEEP_DATE_2){
+        if(dateZzz === SLEEP_DATE_2){
             return;
         }
 
-        if(taipei.getUTCDate()===1 || formatDate(date)===START_DATE){
-            const marker=document.createElement("div");
-            marker.className="month-marker";
-            marker.innerHTML=`
+        if(taipei.getUTCDate() === 1 || formatDate(date) === START_DATE){
+            const marker = document.createElement("div");
+            marker.className = "month-marker";
+            marker.innerHTML = `
                 <div>${taipei.getUTCMonth()+1}月</div>
                 <div class="arrow">▼</div>
             `;
 
-            const markerMonth=taipei.getUTCMonth();
-            const currentMonth=today.getUTCMonth();
+            const markerMonth = taipei.getUTCMonth();
+            const currentMonth = today.getUTCMonth();
             
             if(markerMonth < currentMonth){
                 marker.classList.add("past-month");
@@ -546,32 +552,31 @@ weeks.forEach((week,weekIndex)=>{
             day.classList.add("past");
         }
 
-        day.dataset.weekIndex=weekIndex;
-        day.dataset.dayIndex=index;
-        day.dataset.date=formatDate(date);
+        day.dataset.weekIndex = weekIndex;
+        day.dataset.dayIndex = index;
+        day.dataset.date = formatDate(date);
 
-        if(formatDate(date)===formatDate(today)){
+        if(formatDate(date) === formatDate(today)){
             day.classList.add("today");
-            currentWeekIndex=weekIndex;
-            currentDayIndex=index;
+            currentWeekIndex = weekIndex;
         }
 
-        if(formatDate(date)===LAST_WORKDAY){
+        if(formatDate(date) === LAST_WORKDAY){
             day.classList.add("freedom");
-            const flag=document.createElement("img");
-            flag.className="flag";
-            flag.src="flag.png";
+            const flag = document.createElement("img");
+            flag.className = "flag";
+            flag.src = "flag.png";
             day.appendChild(flag);
         }
 
         row.appendChild(day);
         if(index < week.length-1){
-            const gap=document.createElement("div");
-            if(taipei.getUTCDay()===5){
-                gap.style.width="20px";
+            const gap = document.createElement("div");
+            if(taipei.getUTCDay() === 5){
+                gap.style.width = "20px";
             }
             else{
-                gap.style.width="5px";
+                gap.style.width = "5px";
             }
 
             row.appendChild(gap);
@@ -590,7 +595,7 @@ weeks.forEach((week,weekIndex)=>{
     
     calendar.appendChild(wrapper);
 
-    requestAnimationFrame(()=>{
+    requestAnimationFrame(() => {
         updateTrackWidth(track, row);
     });
 });
@@ -605,14 +610,12 @@ function getCharacterMode(){
     const day = nowTaipei.getUTCDay();
     const hour = nowTaipei.getUTCHours();
     const isRestWindow =
-        (day===5 && hour>=18) ||
-        day===6 ||
-        day===0 ||
-        (day===1 && hour<8);
+        (day === 5 && hour >= 18) ||
+        day === 6 ||
+        day === 0 ||
+        (day === 1 && hour < 8);
 
-    return isRestWindow
-        ? "resting"
-        : "walking";
+    return isRestWindow ? "resting" : "walking";
 }
 
 function getWalkerSize(){
@@ -625,7 +628,7 @@ function applyWalkerSize(){
     const { size, src } = getWalkerSize();
     document.documentElement.style.setProperty("--walker-size", `${size}px`);
 
-    document.querySelectorAll(".walker").forEach(walker=>{
+    document.querySelectorAll(".walker").forEach(walker => {
         walker.width = size;
         walker.height = size;
         if(walker.getAttribute("src") !== src){
@@ -659,19 +662,52 @@ function setTrackCurrentSpan(trackCompleted, trackCurrent, anchorLeft, width, ro
     }
 }
 
+function startSleep(sleep, sleepZone){
+    if(sleepAnimation){
+        cancelAnimationFrame(sleepAnimation);
+    }
+    const zoneWidth = sleepZone.offsetWidth;
+    const walkerWidth = sleep.offsetWidth;
+    let maxX = zoneWidth - walkerWidth;
+
+    sleepZone.appendChild(sleep);
+    
+    sleepDirection = -1;
+    sleepPosition = maxX / 2;
+    sleep.style.transform = "scaleX(1)";
+
+    function animate(){
+        sleepPosition += sleepDirection * 0.2;
+        if(sleepPosition >= maxX){
+            sleepPosition = maxX;
+            sleepDirection = -1;
+            sleep.style.transform = "scaleX(1)";
+        }
+        if(sleepPosition <= 0){
+            sleepPosition = 0;
+            sleepDirection = 1;
+            sleep.style.transform = "scaleX(-1)";
+        }
+
+        sleep.style.left = sleepPosition + "px";
+        sleepAnimation = requestAnimationFrame(animate);
+    }
+    animate();
+}
+
 function renderAllTracks(){
     const allWeeks = document.querySelectorAll(".week");
     const isFinished = actualToday > endDate;
 
-    allWeeks.forEach((weekEl, index)=>{
+    allWeeks.forEach((weekEl, index) => {
         const row = weekEl.querySelector(".days");
         const track = weekEl.querySelector(".track");
 
         track.style.display = "";
         updateTrackWidth(track, row);
 
-        const trackCompleted=weekEl.querySelector(".track-completed");
-        const trackCurrent=weekEl.querySelector(".track-current");
+        const trackCompleted = weekEl.querySelector(".track-completed");
+        const trackCurrent = weekEl.querySelector(".track-current");
 
         if(isFinished){
             trackCompleted.style.left = "0";
@@ -690,9 +726,9 @@ function renderAllTracks(){
             track.style.display = "none";
         }
     });
-     document.querySelectorAll(".hammock").forEach(el => el.remove());
+    document.querySelectorAll(".hammock").forEach(el => el.remove());
 
-     if(currentWeekIndex < 0){
+    if(currentWeekIndex < 0){
         currentWeekIndex = weeks.length -1;
     }
 
@@ -700,46 +736,45 @@ function renderAllTracks(){
     const row = week.querySelector(".days");
     const walker = week.querySelector(".walker");
     const trackCompleted = week.querySelector(".track-completed");
-    const trackCurrent=week.querySelector(".track-current");
+    const trackCurrent = week.querySelector(".track-current");
 
     if(!row || !walker){
         console.warn("renderAllTracks: 找不到 row / walker，略過本次渲染");
         return;
     }
 
-    document.querySelectorAll(".walker").forEach(w=>{
+    document.querySelectorAll(".walker").forEach(w => {
         w.style.display = "none";
     });
 
     if(!ENABLE_WALKER) return;
 
-    const rowRect=row.getBoundingClientRect();
-    const weekRect=week.getBoundingClientRect();
-    const isReverse=row.classList.contains("reverse");
-    const mode=getCharacterMode();
+    const rowRect = row.getBoundingClientRect();
+    const weekRect = week.getBoundingClientRect();
+    const isReverse = row.classList.contains("reverse");
+    const mode = getCharacterMode();
     const {size: walkerSize, src: walkingSrc} = getWalkerSize();
 
+
     if(isFinished){
-        document.querySelectorAll(".track-completed").forEach(track=>{
+        document.querySelectorAll(".track-completed").forEach(track => {
             track.style.left = "0";
             track.style.right = "auto";
             track.style.width = "100%";
         });
-        document.querySelectorAll(".track-current").forEach(track=>{
+        document.querySelectorAll(".track-current").forEach(track => {
             track.style.display = "none";
         });
 
         const sleep = week.querySelector(".sleep");
         const sleepZone = week.querySelector(".zzz");
-        const rect = sleepZone.getBoundingClientRect();
-        const center = rect.left + rect.width / 2;
 
         sleep.src = SLEEP_GIF || HAMMOCK_GIF;
         sleep.style.display = "block";
         walker.style.display = "none";
 
-        sleep.style.left =
-            (center - weekRect.left) - (walkerSize / 2) + "px";
+        startSleep(sleep, sleepZone);
+
         return;
     }
 
@@ -787,12 +822,14 @@ function renderAllTracks(){
     }
 }
 
+
+
 requestAnimationFrame(renderAllTracks);
 
 let resizeTimer;
 function handleResize(){
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(()=>{
+    resizeTimer = setTimeout(() => {
         applyWalkerSize();
         renderAllTracks();
     }, 150);
