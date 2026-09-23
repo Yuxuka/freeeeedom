@@ -331,31 +331,35 @@ body{
 <div id = "calendar"></div>
 
 <script>
+const AFTER_MODE = {
+    enabled: true,
+    text: "躺躺..zZ",
+    gif: "hammock.gif",
+    animate: true,
+    trackFull: true,
+    mergeDays: 2
+};
+
 const START_DATE = "2026-06-29";
 const END_DATE = "2026-09-06";
+const LAST_WORKDAY = "2026-09-04";
+
+const WEEK_COLORS = ["#ffbfd9","#ffe79a","#bff0b7","#bfeeff","#d8bdff"];
+
 const ENABLE_WALKER = true;
 const WALK_GIF_SMALL = "walk_36px.gif";
 const WALK_GIF_LARGE = "walk_48px.gif";
+
 const TRACK_IMAGE = "";
 const HAMMOCK_GIF = "hammock.gif";
 const STAIR_IMAGE = "";
-const WEEK_COLORS = ["#ffbfd9","#ffe79a","#bff0b7","#bfeeff","#d8bdff"];
-const LAST_WORKDAY = "2026-09-04";
-const SLEEP_DATE_1 = "2026-09-05";
-const SLEEP_DATE_2 = "2026-09-06";
 const SLEEP_GIF = "hammock.gif";
 
 const TRACK_CURRENT_WIDTH = 72;
 const TRACK_CURRENT_HALF = TRACK_CURRENT_WIDTH / 2;
 const MOBILE_BREAKPOINT = 480;
 
-const calendar = document.getElementById("calendar");
-
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
-
-let sleepAnimation = null;
-let sleepDirection = 1;
-let sleepPosition = 0;
 
 function parseTaipeiDate(dateString){
     const [year, month, day] = dateString.split("-").map(Number);
@@ -426,6 +430,13 @@ const actualToday = new Date(Date.UTC(
 
 const startDate = parseTaipeiDate(START_DATE);
 const endDate = parseTaipeiDate(END_DATE);
+const afterDates = [];
+
+for(let i = 0; i < AFTER_MODE. mergeDays; i++){
+    const d = new Date(endDate);
+    d.setUTCDate(d.getUTCDate()-i);
+    afterDates.unshift(formatDate(d));
+}
 
 const isFinished = actualToday > endDate;
 
@@ -459,6 +470,8 @@ function updateTrackWidth(track, row){
     track.style.width = row.offsetWidth + "px";
     track.style.left = row.offsetLeft + "px";
 }
+
+const calendar = document.getElementById("calendar");
 
 weeks.forEach((week, weekIndex) => {
     const weekColor = WEEK_COLORS[weekIndex % WEEK_COLORS.length];
@@ -516,17 +529,17 @@ weeks.forEach((week, weekIndex) => {
         day.style.background = weekColor;
         day.textContent = taipei.getUTCDate();
 
-        if(dateZzz === SLEEP_DATE_1){
+        if(dateZzz === afterDates[0]){
             const sleepZone = document.createElement("div");
             sleepZone.className = "zzz";
-            sleepZone.textContent = "躺躺..zZ";
+            sleepZone.textContent = AFTER_MODE.text;
             sleepZone.style.background = weekColor;
 
             row.appendChild(sleepZone);
             return;
         }
 
-        if(dateZzz === SLEEP_DATE_2){
+        if(afterDates.includes(dateZzz) && dateZzz !== afterDates[0]){
             return;
         }
 
@@ -601,14 +614,9 @@ weeks.forEach((week, weekIndex) => {
 });
 
 function getCharacterMode(){
-    const todayStr = formatDate(today);
-
-    if(isFinished || todayStr === SLEEP_DATE_1 || todayStr === SLEEP_DATE_2){
-        return "sleeping";
-    }
-
     const day = nowTaipei.getUTCDay();
     const hour = nowTaipei.getUTCHours();
+
     const isRestWindow =
         (day === 5 && hour >= 18) ||
         day === 6 ||
@@ -661,6 +669,10 @@ function setTrackCurrentSpan(trackCompleted, trackCurrent, anchorLeft, width, ro
         trackCurrent.style.right = Math.max(0, rowWidth - anchorRight) + "px";
     }
 }
+
+let sleepAnimation = null;
+let sleepDirection = 1;
+let sleepPosition = 0;
 
 function startSleep(sleep, sleepZone){
     if(sleepAnimation){
@@ -756,7 +768,7 @@ function renderAllTracks(){
     const {size: walkerSize, src: walkingSrc} = getWalkerSize();
 
 
-    if(isFinished){
+    if(isFinished && AFTER_MODE.enabled){
         document.querySelectorAll(".track-completed").forEach(track => {
             track.style.left = "0";
             track.style.right = "auto";
@@ -769,11 +781,13 @@ function renderAllTracks(){
         const sleep = week.querySelector(".sleep");
         const sleepZone = week.querySelector(".zzz");
 
-        sleep.src = SLEEP_GIF || HAMMOCK_GIF;
+        sleep.src = AFTER_MODE.gif;
         sleep.style.display = "block";
         walker.style.display = "none";
 
-        startSleep(sleep, sleepZone);
+        if(AFTER_MODE.animate){
+            startSleep(sleep, sleepZone);
+        }
 
         return;
     }
