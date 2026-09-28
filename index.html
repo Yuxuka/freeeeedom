@@ -334,10 +334,18 @@ body{
 const AFTER_MODE = {
     enabled: true,
     text: "躺躺..zZ",
-    gif: "hammock.gif",
-    animate: true,
+    mergeDays: 2,
     trackFull: true,
-    mergeDays: 2
+    animate: true,
+    walkGifSmall: "walk_36px.gif",
+    walkGifLarge: "walk_48px.gif",
+    sleepGifSmall: "hammock.gif",
+    sleepGifLarge: "hammock.gif",
+    walkMinSc: 1000,
+    walkMaxSc: 10000,
+    sleepMinSc: 3000,
+    sleepMaxSc: 5000,
+    sleepChance: 0.25
 };
 
 const START_DATE = "2026-06-29";
@@ -353,7 +361,6 @@ const WALK_GIF_LARGE = "walk_48px.gif";
 const TRACK_IMAGE = "";
 const HAMMOCK_GIF = "hammock.gif";
 const STAIR_IMAGE = "";
-const SLEEP_GIF = "hammock.gif";
 
 const TRACK_CURRENT_WIDTH = 72;
 const TRACK_CURRENT_HALF = TRACK_CURRENT_WIDTH / 2;
@@ -394,13 +401,12 @@ function getRemainingWorkdays(startDate, endDate){
     return count;
 }
 
-
-
+const startDate = parseTaipeiDate(START_DATE);
+const endDate = parseTaipeiDate(END_DATE);
 const dates = [];
-let current = parseTaipeiDate(START_DATE);
-const parsedEndDate = parseTaipeiDate(END_DATE);
+let current = new Date(startDate);
 
-while(current <= parsedEndDate){
+while(current <= endDate){
     dates.push(new Date(current));
     current.setUTCDate(current.getUTCDate()+1);
 }
@@ -428,8 +434,7 @@ const actualToday = new Date(Date.UTC(
     nowTaipei.getUTCDate()
 ));
 
-const startDate = parseTaipeiDate(START_DATE);
-const endDate = parseTaipeiDate(END_DATE);
+
 const afterDates = [];
 
 for(let i = 0; i < AFTER_MODE. mergeDays; i++){
@@ -449,10 +454,7 @@ const today = actualToday < startDate
 const lastWorkdayDate = parseTaipeiDate(LAST_WORKDAY);
 const remainingWorkdays = isFinished
     ? 0
-    : getRemainingWorkdays(
-        today < startDate ? startDate : today,
-        lastWorkdayDate
-    );
+    : getRemainingWorkdays(today, lastWorkdayDate);
 
 document.getElementById("dayNumber").textContent = remainingWorkdays;
 
@@ -534,6 +536,11 @@ weeks.forEach((week, weekIndex) => {
             sleepZone.className = "zzz";
             sleepZone.textContent = AFTER_MODE.text;
             sleepZone.style.background = weekColor;
+            sleepZone.dataset.date = dateZzz;
+
+            if(afterDates.includes(formatDate(today))){
+                currentWeekIndex = weekIndex;
+            }
 
             row.appendChild(sleepZone);
             return;
@@ -670,7 +677,7 @@ function setTrackCurrentSpan(trackCompleted, trackCurrent, anchorLeft, width, ro
     }
 }
 
-let sleepAnimation = null;
+/*let sleepAnimation = null;
 let sleepDirection = 1;
 let sleepPosition = 0;
 
@@ -705,6 +712,74 @@ function startSleep(sleep, sleepZone){
         sleepAnimation = requestAnimationFrame(animate);
     }
     animate();
+}*/
+let afterModeMode = "walking";
+let afterModeAnimationFrame = null;
+let afterModePhaseTimer = null;
+
+function randomDuration(min, max){
+    return min + Math.random() * (max - min);
+}
+
+function startAfterModeChar(char, zone){
+    if(afterModeAnimationFrame){
+        cancelAnimationFrame(afterModeAnimationFrame);
+    }
+    if(afterModePhaseTimer){
+        clearTimeout(afterModePhaseTimer);
+    }
+    const zoneWidth = zone.offsetWidth;
+    const charWidth = char.offsetWidth;
+    const maxX = zoneWidth - charWidth;
+
+    let direction = -1;
+    let position = maxX / 2;
+    char.style.transform = "scaleX(1)";
+    zone.appendChild(char);
+
+    function movementLoop(){
+        if(afterModeMode === "walking"){
+            position += direction * 0.2;
+
+            if(position >= maxX){
+                position = maxX;
+                direction = -1;
+                char.style.transform = "scaleX(1)";
+            }
+            if(position <= 0){
+                position = 0;
+                direction = 1;
+                char.style.transform = "scaleX(-1)";
+            }
+            char.style.left = position + "px";
+        }
+        afterModeAnimationFrame = requestAnimationFrame(movementLoop);
+    }
+    movementLoop();
+
+    function enterWalking() {
+        afterModeMode = "walking";
+        char.src = AFTER_MODE.walkGifSmall;
+
+        const duration = randomDuration(AFTER_MODE.walkMinSc, AFTER_MODE.walkMaxSc);
+
+        afterModePhaseTimer = setTimeout(() =>{
+            if(Math.random() < AFTER_MODE.sleepChance){
+                enterSleeping();
+            }else{
+                enterWalking();
+            }
+        }, duration)
+    }
+
+    function enterSleeping(){
+        afterModeMode = "sleeping";
+        char.src = AFTER_MODE.sleepGif;
+
+        const duration = randomDuration(AFTER_MODE.sleepMinSc, AFTER_MODE.sleepMaxSc);
+        afterModePhaseTimer = setTimeout(enterWalking, duration);
+    }
+    enterWalking();
 }
 
 function renderAllTracks(){
@@ -769,24 +844,26 @@ function renderAllTracks(){
 
 
     if(isFinished && AFTER_MODE.enabled){
-        document.querySelectorAll(".track-completed").forEach(track => {
-            track.style.left = "0";
-            track.style.right = "auto";
-            track.style.width = "100%";
-        });
-        document.querySelectorAll(".track-current").forEach(track => {
-            track.style.display = "none";
-        });
+        
+        if(AFTER_MODE.trackFull){
+            document.querySelectorAll(".track-completed").forEach(track => {
+                track.style.left = "0";
+                track.style.right = "auto";
+                track.style.width = "100%";
+            });
+            document.querySelectorAll(".track-current").forEach(track => {
+                track.style.display = "none";
+            });
+        }
 
         const sleep = week.querySelector(".sleep");
         const sleepZone = week.querySelector(".zzz");
 
-        sleep.src = AFTER_MODE.gif;
         sleep.style.display = "block";
         walker.style.display = "none";
 
         if(AFTER_MODE.animate){
-            startSleep(sleep, sleepZone);
+            startAfterModeChar(sleep, sleepZone);
         }
 
         return;
@@ -795,8 +872,7 @@ function renderAllTracks(){
     trackCurrent.style.display = isFinished ? "none" : "block";
 
     const targetBox =
-        week.querySelector(".day.today") ||
-        week.querySelector(`[data-date="${SLEEP_DATE_2}"]`);
+        week.querySelector(".day.today");
 
     if(!targetBox){
         console.warn("renderAllTracks: 找不到 targetBox，略過本次渲染");
