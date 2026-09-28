@@ -65,10 +65,23 @@ body{
     position: relative;
 }
 
+.zoom-scene{
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background: rgba(255,253,249,.9);
+}
+
 .zoom-character{
+    position: absolute;
     image-rendering: pixelated;
-    width: auto;
-    height: auto;
+    max-width: none;
+    max-height: none;
+}
+
+.zoom-track{
+    position: absolute;
+    transform-origin: top left;
 }
 
 #countdownBox{
@@ -754,10 +767,8 @@ function startAfterModeChar(char, zone){
     if(afterModePhaseTimer){
         clearTimeout(afterModePhaseTimer);
     }
-    const zoneWidth = zone.offsetWidth;
-    const charWidth = char.offsetWidth;
-    const maxX = zoneWidth - charWidth;
 
+    const maxX = zone.offsetWidth - char.offsetWidth;
     let direction = -1;
     let position = maxX / 2;
     char.style.transform = "scaleX(1)";
@@ -787,7 +798,8 @@ function startAfterModeChar(char, zone){
 
     function enterWalking(){
         afterModeMode = "walking";
-        const walkSize = window.innerWidth < MOBILE_BREAKPOINT ? AFTER_MODE.walk.large : AFTER_MODE.walk.large;
+        const walkSize = window.innerWidth < MOBILE_BREAKPOINT 
+            ? AFTER_MODE.walk.large : AFTER_MODE.walk.large;
         char.src = walkSize.src;
         char.style.width = walkSize.width + "px";
         char.style.height = walkSize.height + "px";
@@ -940,34 +952,47 @@ const zoomContent = document.getElementById("zoomContent");
 
 function zoomChar(character){
     zoomContent.innerHTML = "";
-    const clone = character.cloneNode(true);
-    clone.removeAttribute("width");
-    clone.removeAttribute("height");
-    clone.classList.remove("walker", "sleep", "hammock");
-    clone.classList.add("zoom-character");
-    clone.style.width = "";
-    clone.style.height = "";
-    clone.style.left = "";
-    clone.style.top = "";
-    clone.style.transform = "";
-    zoomContent.appendChild(clone);
-    function sizeZoomCharacter(){
-        const largestSide = Math.min(300, Math.max(120, window.innerWidth * 0.6));
-        const width = clone.naturalWidth;
-        const height = clone.naturalHeight;
 
-        if(!width || !height) return;
+    const week = character.closest(".week");
+    const track = week?.querySelector(".track");
+    const charRect = character.getBoundingClientRect();
+    const largestSide = Math.min(window.innerWidth * 0.6, window.innerHeight * 0.6, 500);
+    const charSide = Math.max(charRect.width, charRect.height);
+    const scale = largestSide / charSide;
+    const scene = document.createElement("div");
+    scene.className = "zoom-scene";
+    scene.style.width = `${largestSide}px`;
+    scene.style.height = `${largestSide}px`;
+    zoomContent.appendChild(scene);
 
-        if(width >= height){
-            clone.style.width = `${largestSide}px`;
-        }else{
-            clone.style.height = `${largestSide}px`;
-        }
+    const charClone = document.createElement("img");
+    charClone.src = character.src;
+    charClone.classList.add("zoom-character");
+
+    const charWidth = charRect.width * scale;
+    const charHeight = charRect.height * scale;
+    const charLeft = (largestSide - charWidth) / 2;
+    const charTop = (largestSide - charHeight) / 2;
+
+    charClone.style.width = `${charWidth}px`;
+    charClone.style.height = `${charHeight}px`;
+    charClone.style.left = `${charLeft}px`;
+    charClone.style.top = `${charTop}px`;
+
+    if(track){
+        const trackRect = track.getBoundingClientRect();
+        const trackClone = track.cloneNode(true);
+        trackClone.classList.add("zoom-track");
+        trackClone.style.left = `${charLeft + (trackRect.left - charRect.left) * scale}px`;
+        trackClone.style.top = `${charTop + charHeight - trackRect.height * scale}px`;
+        trackClone.style.width = `${trackRect.width}px`;
+        trackClone.style.height = `${trackRect.height}px`;
+        trackClone.style.transform = `scale(${scale})`;
+        scene.appendChild(trackClone);
     }
+    scene.appendChild(charClone);
 
-    clone.addEventListener("load", sizeZoomCharacter, { once: true });
-    if(clone.complete) sizeZoomCharacter();
-        zoomOverlay.classList.add("show");
+    zoomOverlay.classList.add("show");
 }
 
 zoomOverlay.addEventListener("click", () => {
@@ -983,9 +1008,24 @@ function handleResize(){
         applyWalkerSize();
         renderAllTracks();
     }, 150);
+    if(zoomOverlay.classList.contains("show")){
+        zoomOverlay.classList.remove("show");
+    }
 }
 
 window.addEventListener("resize", handleResize);
+
+function debugTime(date){
+    return{
+        display: date,
+        y: date.getUTCFullYear(),
+        m: date.getUTCMonth() + 1,
+        d: date.getUTCDate(),
+        h: date.getUTCHours(),
+        min: date.getUTCMinutes()
+    };
+    console.log(debugTime(nowTaipei)); //檢查時間有冇走位
+}
 
 </script>
  
