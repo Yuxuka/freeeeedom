@@ -15,14 +15,9 @@ href = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 
 <style>
 :root{
-    --active-bg: #ffffff;
-    --active-border: #d5d5d5;
-    --past-bg: #f2f2f2;
-    --past-text: #b7b7b7;
-
     --week-gap: 60px;
     --days-offset: -3px;
-    --track-offset:-20px;
+    --track-offset: -20px;
     --track-height: 18px;    
     --walker-top: calc(-4px - var(--walker-size));
 
@@ -35,7 +30,6 @@ href = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
     --sleep-top: -60px;
 
     --marker-top: -50px;
-    --marker-gap: 28px;
     --stair-width: 60px;
     --stair-height: 70px;
 }
@@ -199,7 +193,7 @@ body{
     color: #694b4b;
     border-radius: 12px;
     border: 3px solid rgba(255,255,255,.8);
-    box-shadow:  
+    box-shadow:
         0 4px 0 rgba(0,0,0,.08), 
         inset 0 2px 0 rgba(255,255,255,.9);
     transition: .3s;
@@ -381,6 +375,8 @@ body{
 
 <script>
 
+// ==================== Config ====================
+
 const START_DATE = "2026-06-29";
 const END_DATE = "2026-09-06";
 const LAST_WORKDAY = "2026-09-04";
@@ -393,6 +389,7 @@ const WALK_GIF_LARGE = "walk_48px.gif";
 
 const TRACK_IMAGE = "";
 const HAMMOCK_GIF = "hammock.gif";
+const SLEEP_GIF = "hammock.gif";
 const STAIR_IMAGE = "";
 
 const TRACK_CURRENT_WIDTH = 72;
@@ -421,7 +418,7 @@ const AFTER_MODE = {
         speed: 0.2
     },
     sleep: {
-        src: "hammock.gif",
+        src: SLEEP_GIF,
         width: 36,
         height: 72,
         minSc: 3000,
@@ -429,10 +426,13 @@ const AFTER_MODE = {
     },
 };
 
+
+// ==================== Time, Date ====================
+
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
 
-function parseTaipeiDate(dateString){
-    const [year, month, day] = dateString.split("-").map(Number);
+function parseTaipeiDate(dateStr){
+    const [year, month, day] = dateStr.split("-").map(Number);
     return new Date(Date.UTC(year, month - 1, day));
 }
 
@@ -464,18 +464,53 @@ function getRemainingWorkdays(startDate, endDate){
     return count;
 }
 
+// ==================== Calendar ====================
+
 const startDate = parseTaipeiDate(START_DATE);
 const endDate = parseTaipeiDate(END_DATE);
-const dates = [];
-let current = new Date(startDate);
 
-while(current <= endDate){
-    dates.push(new Date(current));
-    current.setUTCDate(current.getUTCDate()+1);
-}
+const dates = [];
+let currentDate = new Date(startDate);
 
 const weeks = [];
 let currentWeek = [];
+
+const nowTaipei = new Date(Date.now() + TAIPEI_OFFSET_MS);
+const actualToday = new Date(Date.UTC(
+    nowTaipei.getUTCFullYear(),
+    nowTaipei.getUTCMonth(),
+    nowTaipei.getUTCDate()
+));
+
+const afterDates = [];
+const lastWorkdayDate = parseTaipeiDate(LAST_WORKDAY);
+const isFinished = actualToday > lastWorkdayDate;
+const dayAfterLastWorkday = new Date(lastWorkdayDate);
+dayAfterLastWorkday.setUTCDate(dayAfterLastWorkday.getUTCDate() + 1);
+
+const today = actualToday < startDate
+    ? new Date(startDate)
+    : isFinished
+        ? dayAfterLastWorkday
+        : actualToday;
+const todayStr = formatDate(today);
+
+const remainingWorkdays = isFinished
+    ? 0
+    : getRemainingWorkdays(today, lastWorkdayDate);
+
+// ==================== Calendar (Setup) ====================
+
+for(let i = 0; i < AFTER_MODE.mergeDays; i++){
+    const d = new Date(endDate);
+    d.setUTCDate(d.getUTCDate()-i);
+    afterDates.unshift(formatDate(d));
+}
+
+while(currentDate <= endDate){
+    dates.push(new Date(currentDate));
+    currentDate.setUTCDate(currentDate.getUTCDate()+1);
+}
 
 dates.forEach(date => {
     currentWeek.push(date);
@@ -490,42 +525,9 @@ if(currentWeek.length){
     weeks.push(currentWeek);
 }
 
-const nowTaipei = new Date(Date.now() + TAIPEI_OFFSET_MS);
-const actualToday = new Date(Date.UTC(
-    nowTaipei.getUTCFullYear(),
-    nowTaipei.getUTCMonth(),
-    nowTaipei.getUTCDate()
-));
-
-
-const afterDates = [];
-
-for(let i = 0; i < AFTER_MODE.mergeDays; i++){
-    const d = new Date(endDate);
-    d.setUTCDate(d.getUTCDate()-i);
-    afterDates.unshift(formatDate(d));
-}
-
-const lastWorkdayDate = parseTaipeiDate(LAST_WORKDAY);
-
-const isFinished = actualToday > lastWorkdayDate;
-
-const dayAfterLastWorkday = new Date(lastWorkdayDate);
-dayAfterLastWorkday.setUTCDate(dayAfterLastWorkday.getUTCDate() + 1);
-
-const today = actualToday < startDate
-    ? new Date(startDate)
-    : isFinished
-        ? dayAfterLastWorkday
-        : actualToday;
-const todayStr = formatDate(today);
-
-
-const remainingWorkdays = isFinished
-    ? 0
-    : getRemainingWorkdays(today, lastWorkdayDate);
-
 document.getElementById("dayNumber").textContent = remainingWorkdays;
+
+// ==================== Calendar (Countdown Box Sub) ====================
 
 const countdownSub = document.getElementById("countdownSub");
 
@@ -534,6 +536,8 @@ if(remainingWorkdays <= 0){
 }else{
     countdownSub.innerHTML = `（還有 ${remainingWorkdays} 天！<img class="pleading" src="pleading-face.webp">）`;
 }
+
+// ==================== Calendar (Week) ====================
 
 let currentWeekIndex = -1;
 
@@ -573,7 +577,7 @@ weeks.forEach((week, weekIndex) => {
         zoomChar(walker);
     });
 
-    const {size: walkerSize, src: walkerSrc} = getWalkerConfig();
+    const { size: walkerSize, src: walkerSrc } = getWalkerConfig();
     walker.src = walkerSrc;
     walker.width = walkerSize;
     walker.height = walkerSize;
@@ -669,7 +673,7 @@ weeks.forEach((week, weekIndex) => {
         }
 
         row.appendChild(day);
-        if(index < week.length-1){
+        if(index < week.length - 1){
             const gap = document.createElement("div");
             if(taipei.getUTCDay() === 5){
                 gap.style.width = "20px";
@@ -698,6 +702,33 @@ weeks.forEach((week, weekIndex) => {
         updateTrackWidth(track, row);
     });
 });
+
+// ==================== Track ====================
+
+function setTrackCurrentSpan(trackCompleted, trackCurrent, anchorLeft, width, rowWidth, isReverse){
+    const clampedLeft = Math.max(0, Math.min(rowWidth - width, anchorLeft));
+    const anchorRight = clampedLeft + width;
+
+    trackCurrent.style.width = width + "px";
+
+    if(!isReverse){
+        trackCompleted.style.left = "0px";
+        trackCompleted.style.right = "auto";
+        trackCompleted.style.width = clampedLeft + "px";
+
+        trackCurrent.style.left = clampedLeft + "px";
+        trackCurrent.style.right = "auto";
+    }else{
+        trackCompleted.style.left = "auto";
+        trackCompleted.style.right = "0px";
+        trackCompleted.style.width = Math.max(0, rowWidth - anchorRight) + "px";
+
+        trackCurrent.style.left = "auto";
+        trackCurrent.style.right = Math.max(0, rowWidth - anchorRight) + "px";
+    }
+}
+
+// ==================== Character ====================
 
 function getCharacterMode(){
     const day = nowTaipei.getUTCDay();
@@ -733,28 +764,138 @@ function applyWalkerSize(){
 
 applyWalkerSize();
 
-function setTrackCurrentSpan(trackCompleted, trackCurrent, anchorLeft, width, rowWidth, isReverse){
-    const clampedLeft = Math.max(0, Math.min(rowWidth - width, anchorLeft));
-    const anchorRight = clampedLeft + width;
+// ==================== Render ====================
 
-    trackCurrent.style.width = width + "px";
+function renderAllTracks(){
+    const allWeeks = document.querySelectorAll(".week");
+    const isFinished = actualToday > lastWorkdayDate;
 
-    if(!isReverse){
-        trackCompleted.style.left = "0px";
-        trackCompleted.style.right = "auto";
-        trackCompleted.style.width = clampedLeft + "px";
+    allWeeks.forEach((weekEl, index) => {
+        const row = weekEl.querySelector(".days");
+        const track = weekEl.querySelector(".track");
 
-        trackCurrent.style.left = clampedLeft + "px";
-        trackCurrent.style.right = "auto";
-    }else{
-        trackCompleted.style.left = "auto";
-        trackCompleted.style.right = "0px";
-        trackCompleted.style.width = Math.max(0, rowWidth - anchorRight) + "px";
+        track.style.display = "";
+        updateTrackWidth(track, row);
 
-        trackCurrent.style.left = "auto";
-        trackCurrent.style.right = Math.max(0, rowWidth - anchorRight) + "px";
+        const trackCompleted = weekEl.querySelector(".track-completed");
+        const trackCurrent = weekEl.querySelector(".track-current");
+
+        if(isFinished && AFTER_MODE.enabled && AFTER_MODE.trackFull){
+            trackCompleted.style.left = "0";
+            trackCompleted.style.right = "auto";
+            trackCompleted.style.width = "100%";
+            trackCurrent.style.display = "none";
+            return;
+        }
+
+        if(index < currentWeekIndex){
+            trackCompleted.style.left = "0";
+            trackCompleted.style.right = "auto";
+            trackCompleted.style.width = "100%";
+            trackCurrent.style.display = "none";
+        }else if(index > currentWeekIndex){
+            track.style.display = "none";
+        }
+    });
+    document.querySelectorAll(".hammock").forEach(el => el.remove());
+
+    if(currentWeekIndex < 0){
+        currentWeekIndex = weeks.length - 1; // if cant find today week then show last week
+    }
+
+    const week = allWeeks[currentWeekIndex];
+    if(!week){
+        console.warn("renderAllTracks: Unable to find current week");
+        return;
+    }
+    const row = week.querySelector(".days");
+    const walker = week.querySelector(".walker");
+    const trackCompleted = week.querySelector(".track-completed");
+    const trackCurrent = week.querySelector(".track-current");
+
+    if(!row || !walker){
+        console.warn("renderAllTracks: Unable to find row / walker");
+        return;
+    }
+
+    document.querySelectorAll(".walker").forEach(w => {
+        w.style.display = "none";
+    });
+
+    if(!ENABLE_WALKER) return;
+
+    const rowRect = row.getBoundingClientRect();
+    const weekRect = week.getBoundingClientRect();
+    const isReverse = row.classList.contains("reverse");
+    const mode = getCharacterMode();
+    const { size: walkerSize, src: walkingSrc } = getWalkerConfig();
+
+
+    if(isFinished && AFTER_MODE.enabled){
+        const sleep = week.querySelector(".sleep");
+        const sleepZone = week.querySelector(".zzz");
+
+        if(!sleep || !sleepZone){
+            return;
+        }
+
+        sleep.style.display = "block";
+        walker.style.display = "none";
+
+        if(AFTER_MODE.animate){
+            startAfterModeChar(sleep, sleepZone);
+        }else{
+            sleep.src = AFTER_MODE.sleep.src;
+            sleep.style.width = AFTER_MODE.sleep.width + "px";
+            sleep.style.height = AFTER_MODE.sleep.height + "px";
+        }
+        return;
+    }
+
+    trackCurrent.style.display = isFinished ? "none" : "block";
+
+    const targetBox =
+        week.querySelector(".day.today");
+
+    if(!targetBox){
+        console.warn("renderAllTracks: Unable to find targetBox");
+        return;
+    }
+
+    const boxRect = targetBox.getBoundingClientRect();
+    const boxCenterInRow = boxRect.left - rowRect.left + boxRect.width / 2;
+
+    walker.src = walkingSrc;
+    walker.style.display = "block";
+    if(mode === "resting" && HAMMOCK_GIF){
+        walker.style.display = "none";
+    }
+    walker.style.width = walkerSize + "px";
+    walker.style.height = walkerSize + "px";
+    walker.style.transform = isReverse ? "scaleX(-1)" : "scaleX(1)";
+
+    const walkerLeftInWeek = boxRect.left - weekRect.left + boxRect.width/2 - walkerSize/2;
+    walker.style.left = walkerLeftInWeek + "px";
+
+    setTrackCurrentSpan(
+        trackCompleted, trackCurrent,
+        boxCenterInRow - TRACK_CURRENT_HALF, TRACK_CURRENT_WIDTH,
+        rowRect.width, isReverse
+    );
+
+    if(mode === "resting" && HAMMOCK_GIF){
+        const hammock = document.createElement("img");
+        hammock.src = HAMMOCK_GIF;
+        hammock.className = "hammock";
+        const hammockWidth = 36;
+        const hammockLeft = boxRect.left - weekRect.left + boxRect.width / 2 - hammockWidth / 2;
+        hammock.style.left = hammockLeft + "px";
+        hammock.style.transform = "none";
+        week.appendChild(hammock);
     }
 }
+
+// ==================== Character (After Mode) ====================
 
 let afterModeMode = "walking";
 let afterModeAnimationFrame = null;
@@ -826,130 +967,7 @@ function startAfterModeChar(char, zone){
     enterWalking();
 }
 
-function renderAllTracks(){
-    const allWeeks = document.querySelectorAll(".week");
-    const isFinished = actualToday > lastWorkdayDate;
-
-    allWeeks.forEach((weekEl, index) => {
-        const row = weekEl.querySelector(".days");
-        const track = weekEl.querySelector(".track");
-
-        track.style.display = "";
-        updateTrackWidth(track, row);
-
-        const trackCompleted = weekEl.querySelector(".track-completed");
-        const trackCurrent = weekEl.querySelector(".track-current");
-
-        if(isFinished && AFTER_MODE.enabled && AFTER_MODE.trackFull){
-            trackCompleted.style.left = "0";
-            trackCompleted.style.right = "auto";
-            trackCompleted.style.width = "100%";
-            trackCurrent.style.display = "none";
-            return;
-        }
-
-        if(index < currentWeekIndex){
-            trackCompleted.style.left = "0";
-            trackCompleted.style.right = "auto";
-            trackCompleted.style.width = "100%";
-            trackCurrent.style.display = "none";
-        }else if(index > currentWeekIndex){
-            track.style.display = "none";
-        }
-    });
-    document.querySelectorAll(".hammock").forEach(el => el.remove());
-
-    if(currentWeekIndex < 0){
-        currentWeekIndex = weeks.length - 1; // if cant find today week then show last week
-    }
-
-    const week = allWeeks[currentWeekIndex];
-    if(!week){
-        console.warn("renderAllTracks: Unable to find current week");
-        return;
-    }
-    const row = week.querySelector(".days");
-    const walker = week.querySelector(".walker");
-    const trackCompleted = week.querySelector(".track-completed");
-    const trackCurrent = week.querySelector(".track-current");
-
-    if(!row || !walker){
-        console.warn("renderAllTracks: Unable to find row / walker");
-        return;
-    }
-
-    document.querySelectorAll(".walker").forEach(w => {
-        w.style.display = "none";
-    });
-
-    if(!ENABLE_WALKER) return;
-
-    const rowRect = row.getBoundingClientRect();
-    const weekRect = week.getBoundingClientRect();
-    const isReverse = row.classList.contains("reverse");
-    const mode = getCharacterMode();
-    const {size: walkerSize, src: walkingSrc} = getWalkerConfig();
-
-
-    if(isFinished && AFTER_MODE.enabled){
-        const sleep = week.querySelector(".sleep");
-        const sleepZone = week.querySelector(".zzz");
-
-        sleep.style.display = "block";
-        walker.style.display = "none";
-
-        if(AFTER_MODE.animate){
-            startAfterModeChar(sleep, sleepZone);
-        }else{
-            sleep.src = AFTER_MODE.sleep.src;
-            sleep.style.width = AFTER_MODE.sleep.width + "px";
-            sleep.style.height = AFTER_MODE.sleep.height + "px";
-        }
-        return;
-    }
-
-    trackCurrent.style.display = isFinished ? "none" : "block";
-
-    const targetBox =
-        week.querySelector(".day.today");
-
-    if(!targetBox){
-        console.warn("renderAllTracks: Unable to find targetBox");
-        return;
-    }
-
-    const boxRect = targetBox.getBoundingClientRect();
-    const boxCenterInRow = boxRect.left - rowRect.left + boxRect.width / 2;
-
-    walker.src = walkingSrc;
-    walker.style.display = "block";
-    if(mode === "resting" && HAMMOCK_GIF){
-        walker.style.display = "none";
-    }
-    walker.style.width = walkerSize + "px";
-    walker.style.height = walkerSize + "px";
-    walker.style.transform = isReverse ? "scaleX(-1)" : "scaleX(1)";
-
-    const walkerLeftInWeek = boxRect.left - weekRect.left + boxRect.width/2 - walkerSize/2;
-    walker.style.left = walkerLeftInWeek + "px";
-
-    setTrackCurrentSpan(
-        trackCompleted, trackCurrent,
-        boxCenterInRow - TRACK_CURRENT_HALF, TRACK_CURRENT_WIDTH,
-        rowRect.width, isReverse
-    );
-
-    if(mode === "resting" && HAMMOCK_GIF){
-        const hammock = document.createElement("img");
-        hammock.src = HAMMOCK_GIF;
-        hammock.className = "hammock";
-        const hammockWidth = 36;
-        const hammockLeft = boxRect.left - weekRect.left + boxRect.width / 2 - hammockWidth / 2;
-        hammock.style.left = hammockLeft + "px";
-        hammock.style.transform = "none";
-        week.appendChild(hammock);
-    }
-}
+// ==================== Zoom ====================
 
 const zoomOverlay = document.getElementById("zoomOverlay");
 const zoomContent = document.getElementById("zoomContent");
@@ -999,6 +1017,8 @@ function zoomChar(character){
     zoomOverlay.classList.add("show");
 }
 
+// ==================== Event ====================
+
 zoomOverlay.addEventListener("click", () => {
     zoomOverlay.classList.remove("show");
 });
@@ -1029,7 +1049,7 @@ function debugTime(date){
         min: date.getUTCMinutes()
     };
 }
-    console.log(debugTime(nowTaipei)); //檢查時間有冇走位
+console.log(debugTime(nowTaipei)); //檢查時間有冇走位
 
 </script>
  
