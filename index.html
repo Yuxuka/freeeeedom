@@ -337,15 +337,28 @@ const AFTER_MODE = {
     mergeDays: 2,
     trackFull: true,
     animate: true,
-    walkGifSmall: "walk_36px.gif",
-    walkGifLarge: "walk_48px.gif",
-    sleepGifSmall: "hammock.gif",
-    sleepGifLarge: "hammock.gif",
-    walkMinSc: 1000,
-    walkMaxSc: 10000,
-    sleepMinSc: 3000,
-    sleepMaxSc: 5000,
-    sleepChance: 0.25
+    walk: {
+        small: {
+            src: "walk_36px.gif",
+            width: 36,
+            height: 36
+        },
+        large: {
+            src: "walk_48px.gif",
+            width: 48,
+            height: 48
+        },
+        minSc: 1000,
+        maxSc: 8000
+    },
+    sleep: {
+        src: "hammock.gif",
+        width: 36,
+        height: 72,
+        minSc: 3000,
+        maxSc: 5000,
+        chance: 0.25
+    },
 };
 
 const START_DATE = "2026-06-29";
@@ -757,14 +770,16 @@ function startAfterModeChar(char, zone){
     }
     movementLoop();
 
-    function enterWalking() {
+    function enterWalking(){
         afterModeMode = "walking";
-        char.src = AFTER_MODE.walkGifSmall;
+        char.src = AFTER_MODE.walk.large.src;
+        char.style.width = AFTER_MODE.walk.large.width + "px";
+        char.style.height = AFTER_MODE.walk.large.height + "px";
 
-        const duration = randomDuration(AFTER_MODE.walkMinSc, AFTER_MODE.walkMaxSc);
+        const duration = randomDuration(AFTER_MODE.walk.minSc, AFTER_MODE.walk.maxSc);
 
         afterModePhaseTimer = setTimeout(() =>{
-            if(Math.random() < AFTER_MODE.sleepChance){
+            if(Math.random() < AFTER_MODE.sleep.chance){
                 enterSleeping();
             }else{
                 enterWalking();
@@ -774,9 +789,11 @@ function startAfterModeChar(char, zone){
 
     function enterSleeping(){
         afterModeMode = "sleeping";
-        char.src = AFTER_MODE.sleepGif;
+        char.src = AFTER_MODE.sleep.src;
+        char.style.width = AFTER_MODE.sleep.width + "px";
+        char.style.height = AFTER_MODE.sleep.height + "px";
 
-        const duration = randomDuration(AFTER_MODE.sleepMinSc, AFTER_MODE.sleepMaxSc);
+        const duration = randomDuration(AFTER_MODE.sleep.minSc, AFTER_MODE.sleep.maxSc);
         afterModePhaseTimer = setTimeout(enterWalking, duration);
     }
     enterWalking();
