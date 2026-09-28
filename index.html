@@ -11,7 +11,6 @@
 href = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 <link rel = "stylesheet" href = "./pixel-borders.css">
 
-
 <title>烙跑倒數💃🏻</title>
 
 <style>
@@ -30,9 +29,11 @@ href = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
     --hammock-width: 36px;
     --hammock-height: 72px;
     --hammock-top: -60px;
+
     --sleep-width: 36px;
     --sleep-height: 72px;
     --sleep-top: -60px;
+
     --marker-top: -50px;
     --marker-gap: 28px;
     --stair-width: 60px;
@@ -47,7 +48,7 @@ body{
 
 #countdownBox{
     position: sticky;
-    top: 10px;
+    top: 20px;
     z-index: 999;
     display: flex;
     flex-direction: column;
@@ -125,13 +126,20 @@ body{
     position: relative;
     height: clamp(36px,10vw,50px);
     aspect-ratio: 2.2;
-    border-radius: 12px;
     display: flex;
     font-size: clamp(10px,4vw,15px);
     color: #694b4b;
-    border-radius: 12px;
     justify-content: center;
     align-items: center;
+    border: 3px solid rgba(255,255,255,.8);
+    border-radius: 12px;
+    box-shadow:
+        0 4px 0 rgba(0,0,0,.08),
+        inset 0 2px 0 rgba(255,255,255,.9);
+    transition: border-color .3s, box-shadow .3s;
+}
+
+.zzz.glowing{
     border: 3px solid #ffd34d;
     box-shadow:
         0 4px 0 rgba(0,0,0,.08),
@@ -193,14 +201,13 @@ body{
     white-space: nowrap;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 15px;
+    font-size: clamp(11px, 3vw, 15px);
     color: #7b6f6f;
     text-align: center;
     top: var(--marker-top);
     opacity: 1;
     transition: opacity .3s;
     pointer-events: none;
-    font-size: clamp(11px, 3vw, 15px);
 }
 
 @keyframes bounce{
@@ -357,7 +364,6 @@ const AFTER_MODE = {
         height: 72,
         minSc: 3000,
         maxSc: 5000,
-        chance: 0.25
     },
 };
 
@@ -450,21 +456,25 @@ const actualToday = new Date(Date.UTC(
 
 const afterDates = [];
 
-for(let i = 0; i < AFTER_MODE. mergeDays; i++){
+for(let i = 0; i < AFTER_MODE.mergeDays; i++){
     const d = new Date(endDate);
     d.setUTCDate(d.getUTCDate()-i);
     afterDates.unshift(formatDate(d));
 }
 
-const isFinished = actualToday > endDate;
+const lastWorkdayDate = parseTaipeiDate(LAST_WORKDAY);
+
+const isFinished = actualToday > lastWorkdayDate;
+
+const dayAfterLastWorkday = new Date(lastWorkdayDate);
+dayAfterLastWorkday.setUTCDate(dayAfterLastWorkday.getUTCDate() + 1);
 
 const today = actualToday < startDate
     ? new Date(startDate)
     : isFinished
-        ? new Date(endDate)
+        ? dayAfterLastWorkday
         : actualToday;
 
-const lastWorkdayDate = parseTaipeiDate(LAST_WORKDAY);
 const remainingWorkdays = isFinished
     ? 0
     : getRemainingWorkdays(today, lastWorkdayDate);
@@ -547,6 +557,9 @@ weeks.forEach((week, weekIndex) => {
         if(dateZzz === afterDates[0]){
             const sleepZone = document.createElement("div");
             sleepZone.className = "zzz";
+            if(isFinished){
+                sleepZone.classList.add("glowing");
+            }
             sleepZone.textContent = AFTER_MODE.text;
             sleepZone.style.background = weekColor;
             sleepZone.dataset.date = dateZzz;
@@ -648,7 +661,7 @@ function getCharacterMode(){
 
 function getWalkerSize(){
     return window.innerWidth < MOBILE_BREAKPOINT
-        ? { size: 36, src: WALK_GIF_SMALL }
+        ? { size: 48, src: WALK_GIF_LARGE }
         : { size: 48, src: WALK_GIF_LARGE };
 }
 
@@ -690,42 +703,6 @@ function setTrackCurrentSpan(trackCompleted, trackCurrent, anchorLeft, width, ro
     }
 }
 
-/*let sleepAnimation = null;
-let sleepDirection = 1;
-let sleepPosition = 0;
-
-function startSleep(sleep, sleepZone){
-    if(sleepAnimation){
-        cancelAnimationFrame(sleepAnimation);
-    }
-    const zoneWidth = sleepZone.offsetWidth;
-    const walkerWidth = sleep.offsetWidth;
-    let maxX = zoneWidth - walkerWidth;
-
-    sleepZone.appendChild(sleep);
-    
-    sleepDirection = -1;
-    sleepPosition = maxX / 2;
-    sleep.style.transform = "scaleX(1)";
-
-    function animate(){
-        sleepPosition += sleepDirection * 0.2;
-        if(sleepPosition >= maxX){
-            sleepPosition = maxX;
-            sleepDirection = -1;
-            sleep.style.transform = "scaleX(1)";
-        }
-        if(sleepPosition <= 0){
-            sleepPosition = 0;
-            sleepDirection = 1;
-            sleep.style.transform = "scaleX(-1)";
-        }
-
-        sleep.style.left = sleepPosition + "px";
-        sleepAnimation = requestAnimationFrame(animate);
-    }
-    animate();
-}*/
 let afterModeMode = "walking";
 let afterModeAnimationFrame = null;
 let afterModePhaseTimer = null;
@@ -751,6 +728,8 @@ function startAfterModeChar(char, zone){
     zone.appendChild(char);
 
     function movementLoop(){
+        const maxX = zone.offsetWidth - char.offsetWidth;
+
         if(afterModeMode === "walking"){
             position += direction * 0.2;
 
@@ -772,19 +751,14 @@ function startAfterModeChar(char, zone){
 
     function enterWalking(){
         afterModeMode = "walking";
-        char.src = AFTER_MODE.walk.large.src;
-        char.style.width = AFTER_MODE.walk.large.width + "px";
-        char.style.height = AFTER_MODE.walk.large.height + "px";
+        const walkSize = window.innerWidth < MOBILE_BREAKPOINT ? AFTER_MODE.walk.large : AFTER_MODE.walk.large;
+        char.src = walkSize.src;
+        char.style.width = walkSize.width + "px";
+        char.style.height = walkSize.height + "px";
+        char.style.top = "var(--walker-top)";
 
         const duration = randomDuration(AFTER_MODE.walk.minSc, AFTER_MODE.walk.maxSc);
-
-        afterModePhaseTimer = setTimeout(() =>{
-            if(Math.random() < AFTER_MODE.sleep.chance){
-                enterSleeping();
-            }else{
-                enterWalking();
-            }
-        }, duration)
+        afterModePhaseTimer = setTimeout(enterSleeping, duration);
     }
 
     function enterSleeping(){
@@ -792,6 +766,7 @@ function startAfterModeChar(char, zone){
         char.src = AFTER_MODE.sleep.src;
         char.style.width = AFTER_MODE.sleep.width + "px";
         char.style.height = AFTER_MODE.sleep.height + "px";
+        char.style.top = "var(--sleep-top)";
 
         const duration = randomDuration(AFTER_MODE.sleep.minSc, AFTER_MODE.sleep.maxSc);
         afterModePhaseTimer = setTimeout(enterWalking, duration);
@@ -801,7 +776,7 @@ function startAfterModeChar(char, zone){
 
 function renderAllTracks(){
     const allWeeks = document.querySelectorAll(".week");
-    const isFinished = actualToday > endDate;
+    const isFinished = actualToday > lastWorkdayDate;
 
     allWeeks.forEach((weekEl, index) => {
         const row = weekEl.querySelector(".days");
@@ -813,7 +788,7 @@ function renderAllTracks(){
         const trackCompleted = weekEl.querySelector(".track-completed");
         const trackCurrent = weekEl.querySelector(".track-current");
 
-        if(isFinished){
+        if(isFinished && AFTER_MODE.enabled && AFTER_MODE.trackFull){
             trackCompleted.style.left = "0";
             trackCompleted.style.right = "auto";
             trackCompleted.style.width = "100%";
@@ -837,13 +812,17 @@ function renderAllTracks(){
     }
 
     const week = allWeeks[currentWeekIndex];
+    if(!week){
+        console.warn("renderAllTracks: Unable to find current week");
+        return;
+    }
     const row = week.querySelector(".days");
     const walker = week.querySelector(".walker");
     const trackCompleted = week.querySelector(".track-completed");
     const trackCurrent = week.querySelector(".track-current");
 
     if(!row || !walker){
-        console.warn("renderAllTracks: 找不到 row / walker，略過本次渲染");
+        console.warn("renderAllTracks: Unable to find row / walker");
         return;
     }
 
@@ -861,18 +840,6 @@ function renderAllTracks(){
 
 
     if(isFinished && AFTER_MODE.enabled){
-        
-        if(AFTER_MODE.trackFull){
-            document.querySelectorAll(".track-completed").forEach(track => {
-                track.style.left = "0";
-                track.style.right = "auto";
-                track.style.width = "100%";
-            });
-            document.querySelectorAll(".track-current").forEach(track => {
-                track.style.display = "none";
-            });
-        }
-
         const sleep = week.querySelector(".sleep");
         const sleepZone = week.querySelector(".zzz");
 
@@ -881,8 +848,11 @@ function renderAllTracks(){
 
         if(AFTER_MODE.animate){
             startAfterModeChar(sleep, sleepZone);
+        }else{
+            sleep.src = AFTER_MODE.sleep.src;
+            sleep.style.width = AFTER_MODE.sleep.width + "px";
+            sleep.style.height = AFTER_MODE.sleep.height + "px";
         }
-
         return;
     }
 
@@ -892,7 +862,7 @@ function renderAllTracks(){
         week.querySelector(".day.today");
 
     if(!targetBox){
-        console.warn("renderAllTracks: 找不到 targetBox，略過本次渲染");
+        console.warn("renderAllTracks: Unable to find targetBox");
         return;
     }
 
