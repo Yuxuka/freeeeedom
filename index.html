@@ -46,6 +46,31 @@ body{
     font-family: "Huninn",sans-serif;
 }
 
+#zoomOverlay{
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255,255,255,.4);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+}
+
+#zoomOverlay.show{
+    display: flex;
+}
+
+#zoomContent{
+    position: relative;
+}
+
+.zoom-character{
+    image-rendering: pixelated;
+    width: auto;
+    height: auto;
+}
+
 #countdownBox{
     position: sticky;
     top: 20px;
@@ -325,6 +350,10 @@ body{
 </head>
 <body>
 
+<div id = "zoomOverlay">
+    <div id = "zoomContent"></div>
+</div>
+
 <div id = "countdownBox" class = "pixel-borders pixel-borders--3a pixel-borders--inset pixel-borders--inset-all">
     <div class = "countdown-main">
         <span class = "normal-text">烙跑倒數</span>
@@ -523,12 +552,19 @@ weeks.forEach((week, weekIndex) => {
     const walker = document.createElement("img");
     walker.className = "walker";
 
+    walker.addEventListener("click", () => {
+        zoomChar(walker);
+    });
+
     const {size: walkerSize, src: walkerSrc} = getWalkerSize();
     walker.src = walkerSrc;
     walker.width = walkerSize;
     walker.height = walkerSize;
 
     const sleep = document.createElement("img");
+    sleep.addEventListener("click", () => {
+        zoomChar(sleep);
+    });
     sleep.className = "sleep";
     sleep.style.display = "none";
 
@@ -899,7 +935,44 @@ function renderAllTracks(){
     }
 }
 
+const zoomOverlay = document.getElementById("zoomOverlay");
+const zoomContent = document.getElementById("zoomContent");
 
+function zoomChar(character){
+    zoomContent.innerHTML = "";
+    const clone = character.cloneNode(true);
+    clone.removeAttribute("width");
+    clone.removeAttribute("height");
+    clone.classList.remove("walker", "sleep", "hammock");
+    clone.classList.add("zoom-character");
+    clone.style.width = "";
+    clone.style.height = "";
+    clone.style.left = "";
+    clone.style.top = "";
+    clone.style.transform = "";
+    zoomContent.appendChild(clone);
+    function sizeZoomCharacter(){
+        const largestSide = Math.min(300, Math.max(120, window.innerWidth * 0.4));
+        const width = clone.naturalWidth;
+        const height = clone.naturalHeight;
+
+        if(!width || !height) return;
+
+        if(width >= height){
+            clone.style.width = `${largestSide}px`;
+        }else{
+            clone.style.height = `${largestSide}px`;
+        }
+    }
+
+    clone.addEventListener("load", sizeZoomCharacter, { once: true });
+    if(clone.complete) sizeZoomCharacter();
+        zoomOverlay.classList.add("show");
+}
+
+zoomOverlay.addEventListener("click", () => {
+    zoomOverlay.classList.remove("show");
+});
 
 requestAnimationFrame(renderAllTracks);
 
