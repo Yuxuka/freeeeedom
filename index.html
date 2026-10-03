@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang = 'zh-Hant'>
+<html lang='zh-Hant'>
 <head>
-<meta name = 'robots' content = 'noindex, nofollow'>
-<meta name = 'viewport' content = 'width = device-width, initial-scale = 1.0'>
-<meta charset = 'UTF-8'>
-<link rel = 'preconnect' href = 'https://fonts.googleapis.com'>
-<link rel = 'preconnect' href = 'https://fonts.gstatic.com' crossorigin>
-<link rel = 'stylesheet' href = 'https://fonts.googleapis.com/css2?family=Huninn&display=swap'>
-<link rel = 'stylesheet' 
-href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'>
-<link rel = 'stylesheet' href = './pixel-borders.css'>
+<meta name='robots' content='noindex, nofollow'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<meta charset='UTF-8'>
+<link rel='preconnect' href='https://fonts.googleapis.com'>
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+<link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Huninn&display=swap'>
+<link rel='stylesheet' 
+href='https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'>
+<link rel='stylesheet' href='./pixel-borders.css'>
 
 <title>烙跑倒數💃🏻</title>
 
 <style>
-:root{
+:root {
     --week-gap: 60px;
     --days-offset: -3px;
     --track-offset: -20px;
@@ -34,13 +34,13 @@ href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'>
     --stair-height: 70px;
 }
 
-body{
+body {
     margin: 30px;
     background: #fffdf9;
     font-family: 'Huninn',sans-serif;
 }
 
-#zoomOverlay{
+#zoomOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -51,34 +51,34 @@ body{
     z-index: 9999;
 }
 
-#zoomOverlay.show{
+#zoomOverlay.show {
     display: flex;
 }
 
-#zoomContent{
+#zoomContent {
     position: relative;
 }
 
-.zoom-scene{
+.zoom-scene {
     position: relative;
     overflow: hidden;
     border-radius: 18px;
     background: rgba(255,253,249,.9);
 }
 
-.zoom-character{
+.zoom-character {
     position: absolute;
     image-rendering: pixelated;
     max-width: none;
     max-height: none;
 }
 
-.zoom-track{
+.zoom-track {
     position: absolute;
     transform-origin: top left;
 }
 
-#countdownBox{
+#countdownBox {
     position: sticky;
     top: 20px;
     z-index: 999;
@@ -100,7 +100,7 @@ body{
     color: #8f5d5d;
 }
 
-.countdown-main{
+.countdown-main {
     white-space: nowrap;
     display: flex;
     align-items: center;
@@ -108,40 +108,40 @@ body{
     gap: 0.3em;
 }
 
-.countdown-sub{
+.countdown-sub {
     margin-top: 6px;
     font-size: 0.45em;
     font-weight: normal;
     color: #a98282;
 }
 
-.normal-text{
+.normal-text {
     font-family: 'Huninn', sans-serif;
 }
 
-.sparkles{
+.sparkles {
     height: 1.3em;
     vertical-align: middle;
 }
 
-.pleading{
+.pleading {
     height: 1.5em;
     vertical-align: middle;
 }
 
-#dayNumber{
+#dayNumber {
     font-family: 'Press Start 2P', monospace;
     font-size: clamp(16px,5vw,28px);
 }
 
-.week{
+.week {
     position: relative;
     margin-bottom: var(--week-gap);
     display: flex;
     justify-content: center;
 }
 
-.days{
+.days {
     z-index: 20;
     display: flex;
     justify-content: center;
@@ -150,11 +150,11 @@ body{
     top: var(--days-offset);
 }
 
-.days.reverse{
+.days.reverse {
     flex-direction: row-reverse;
 }
 
-.zzz{
+.zzz {
     position: relative;
     height: clamp(36px,10vw,50px);
     aspect-ratio: 2.2;
@@ -171,7 +171,7 @@ body{
     transition: border-color .3s, box-shadow .3s;
 }
 
-.zzz.glowing{
+.zzz.glowing {
     border: 3px solid #ffd34d;
     box-shadow:
         0 4px 0 rgba(0,0,0,.08),
@@ -180,7 +180,7 @@ body{
         0 0 24px rgba(255,211,77,.4);
 }
 
-.day{
+.day {
     z-index: 1;
     width: clamp(36px,10vw,50px);
     aspect-ratio: 1;
@@ -199,12 +199,12 @@ body{
     transition: .3s;
 }
 
-.day.past{
+.day.past {
     transform: translateY(2px);
     box-shadow: none;
 }
 
-.day.past::before{
+.day.past::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -214,7 +214,7 @@ body{
     pointer-events: none;
 }
 
-.day.today{
+.day.today {
     border: 3px solid #ffd34d;
     box-shadow:
         0 4px 0 rgba(0,0,0,.08),
@@ -223,11 +223,11 @@ body{
         0 0 24px rgba(255,211,77,.4);
 }
 
-.day.freedom{
+.day.freedom {
     border: 3px solid #ff74b2;
 }
 
-.month-marker{
+.month-marker {
     z-index: 5;
     position: absolute;
     white-space: nowrap;
@@ -242,22 +242,22 @@ body{
     pointer-events: none;
 }
 
-@keyframes bounce{
-    0%{transform: translateY(1px);}
-    50%{transform: translateY(5px);}
-    100%{transform: translateY(1px);}
+@keyframes bounce {
+    0% {transform: translateY(1px);}
+    50% {transform: translateY(5px);}
+    100% {transform: translateY(1px);}
 }
 
-.month-marker .arrow{
+.month-marker .arrow {
     font-size: clamp(14px,4vw,18px);
     animation: bounce 1s infinite ease-in-out;
 }
 
-.month-marker.past-month{
+.month-marker.past-month {
     opacity: .3;
 }
 
-.track{
+.track {
     z-index: 10;
     image-rendering: pixelated;
     position: absolute;
@@ -269,7 +269,7 @@ body{
     background: transparent;
 }
 
-.track-completed{
+.track-completed {
     position: absolute;
     left: 0;
     top: 0;
@@ -279,7 +279,7 @@ body{
     background-size: auto 100%;
 }
 
-.track-current{
+.track-current {
     position: absolute;
     top: 0;
     left: 0;
@@ -291,7 +291,7 @@ body{
     background-size: 100% 100%;
 }
 
-.walker{
+.walker {
     z-index: 40;
     image-rendering: pixelated;
     position: absolute;
@@ -301,11 +301,11 @@ body{
     transition: .3s;
 }
 
-.walker.hidden{
+.walker.hidden {
     display: none;
 }
 
-.flag{
+.flag {
     z-index: 30;
     image-rendering: pixelated;
     position: absolute;
@@ -315,7 +315,7 @@ body{
     height: 24px;
 }
 
-.hammock{
+.hammock {
     z-index: 30;
     image-rendering: pixelated;
     position: absolute;
@@ -324,7 +324,7 @@ body{
     top: var(--hammock-top);
 }
 
-.sleep{
+.sleep {
     z-index: 30;
     image-rendering: pixelated;
     position: absolute;
@@ -333,7 +333,7 @@ body{
     top: var(--sleep-top);
 }
 
-.stair{
+.stair {
     z-index: 6;
     image-rendering: pixelated;
     position: absolute;
@@ -345,11 +345,11 @@ body{
     pointer-events: none;
 }
 
-.stair.stair-right{
+.stair.stair-right {
     right: 20px;
 }
 
-.stair.stair-left{
+.stair.stair-left {
     left: 20px;
 }
 
