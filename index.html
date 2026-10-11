@@ -321,7 +321,7 @@ body {
 }
 
 .hammock {
-    z-index: 30;
+    z-i ndex: 30;
     image-rendering: pixelated;
     position: absolute;
     width: var(--hammock-width);
@@ -329,7 +329,7 @@ body {
     top: var(--hammock-top);
 }
 
-.sleep {
+.sleep {    
     z-index: 30;
     image-rendering: pixelated;
     position: absolute;
@@ -348,6 +348,10 @@ body {
     background-repeat: no-repeat;
     background-size: 100% 100%;
     pointer-events: none;
+}
+
+.stair.past-week {
+    opacity: 0.7;
 }
 
 </style>
@@ -775,6 +779,11 @@ function renderAllTracks(){
     const isFinished = actualToday > lastWorkdayDate;
 
     allWeeks.forEach((weekEl, index) => {
+        const stair = weekEl.querySelector('.stair');
+        if(stair){
+            stair.classList.toggle('past-week', index < currentWeekIndex - 1);
+        }
+
         const row = weekEl.querySelector('.days');
         const track = weekEl.querySelector('.track');
 
